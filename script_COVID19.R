@@ -9,13 +9,14 @@
 
 require(dplyr)
 require(ggplot2)
-require(COVID19) ##https://github.com/emanuele-guidotti/COVID19
+require(COVID19) ##package available from https://github.com/emanuele-guidotti/COVID19
 
+dir_prefix<-"it" ## this is the prefix of the directory that will be great where the output graphs will be saved in
+
+## Control variables what to plot
 b_onlycumul<-FALSE
-
 b_regions<-TRUE
 b_dolog<-TRUE
-
 b_dodaily<-TRUE
 b_donumtest<-FALSE
 
@@ -121,7 +122,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
 g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul)
 g
 
- dirname <- paste0("it",c_ending)
+ dirname <- paste0(dir_prefix,c_ending)
  dir.create(dirname)
  sink(file=sprintf("%s/%s%s.txt",dirname,c_sink_start,c_ending))
  for(i in 1:length(g)){
