@@ -22,20 +22,6 @@
 ## that may befall you or others as a result of its use. Please send comments and report 
 ## bugs to Krzysztof Bartoszek at krzbar@protonmail.ch .
 
-require(dplyr)
-require(ggplot2)
-require(COVID19) ##package available from https://github.com/emanuele-guidotti/COVID19
-
-dir_prefix<-"it" ## this is the prefix of the directory that will be great where the output graphs will be saved in
-
-## Control variables what to plot
-b_onlycumul<-FALSE
-b_regions<-TRUE
-b_dolog<-TRUE
-b_dodaily<-TRUE
-b_donumtest<-FALSE
-
-b_visualize_Italy<-FALSE
 c_ending<-""
 if (b_regions){c_sink_start<-"MSE_Regions";c_ending<-paste0(c_ending,"_regions")}else{c_sink_start<-"MSE_Italy";c_ending<-paste0(c_ending,"_all")}
 if (!b_donumtest){
@@ -63,7 +49,59 @@ if (b_dolog){
 if (b_regions){
     it <- italy("state")
 }else{it <- italy("country")}
-if (b_onlycumul){it <- subset(it, confirmed>0)}else{it <- subset(it, deaths>0)}
+if (b_scale_2020deaths){
+## connect with whole population death data
+    source("prep_pop_data.R")
+    if (b_regions){
+    ## for each region
+	it<-it2
+    }else{
+	## for whole of Italy
+	## do the same thing that is in prep_pop_data.R (but there it is for region)
+	
+	it <- it2 %>% 
+	  group_by(country, date) %>%
+	  summarise(pop_deaths = sum(pop_deaths,na.rm=TRUE),
+	            pop_deaths_2020 = sum(pop_deaths_2020,na.rm=TRUE),
+	            excess_death=sum(excess_death,na.rm=TRUE),
+	            weekly_death=sum(weekly_death,na.rm=TRUE),
+    	            weekly_death_pop=sum(weekly_death_pop,na.rm=TRUE),
+    	            weekly_death_pop_pastavg=sum(weekly_death_pop_pastavg,na.rm=TRUE),
+    	            cumul_total_pop_deaths=sum(cumul_total_pop_deaths,na.rm=TRUE),
+	            cumul_total_pop_deaths_2020=sum(cumul_total_pop_deaths_2020,na.rm=TRUE)	            
+	            ) %>%
+	  right_join(it)
+
+	it <- it %>%
+		mutate(excess_death_frac=weekly_death/excess_death,weekly_death_frac=weekly_death/weekly_death_pop,weekly_death_frac_pastavg=weekly_death/weekly_death_pop_pastavg,cumul_death_frac=deaths/cumul_total_pop_deaths_2020,cumul_death_frac_pastavg=deaths/cumul_total_pop_deaths)    
+    }
+    
+    if (!is.na(pop_2020_end_date)){
+	it$pop_deaths_2020[which(it$date > pop_2020_end_date)]<-NA
+	it$excess_death[which(it$date > pop_2020_end_date)]<-NA
+	it$excess_death_frac[which(it$date > pop_2020_end_date)]<-NA
+	#it$weekly_death[which(it$date > pop_2020_end_date)]<-NA
+	it$weekly_death_frac[which(it$date > pop_2020_end_date)]<-NA	
+	it$weekly_death_pop[which(it$date > pop_2020_end_date)]<-NA
+	it$cumul_total_pop_deaths_2020[which(it$date > pop_2020_end_date)]<-NA
+	it$cumul_death_frac[which(it$date > pop_2020_end_date)]<-NA
+    }
+    
+    it <- it %>% 
+	    mutate(deaths_div_by=pop_deaths_2020,deaths_div_by_cumul=cumul_total_pop_deaths_2020)
+    
+    if (b_dolog){
+        it$excess_death_frac <- log(it$excess_death_frac)
+        it$weekly_death_frac <- log(it$weekly_death_frac)
+        it$weekly_death_frac_pastavg <- log(it$weekly_death_frac)
+        it$cumul_death_frac <- log(it$cumul_death_frac)
+        it$cumul_death_frac_pastavg <- log(it$cumul_death_frac_pastavg)        
+    }
+}else{
+    it <- it %>% 
+	mutate(deaths_div_by=(pop_death_rate*pop/365),deaths_div_by_cumul=(1:length(deaths)*pop_death_rate*pop/365),deaths_cumul=deaths)
+}
+
 
 {
     if (!b_donumtest){
@@ -72,23 +110,22 @@ if (b_onlycumul){it <- subset(it, confirmed>0)}else{it <- subset(it, deaths>0)}
 		it <- it %>% 
 		    mutate(confirmed_scaled     = log(confirmed/tests),
         		confirmed_new_scaled = log(confirmed_new/tests_new),
-        		deaths_scaled        = log(deaths/(1:length(deaths)*pop_death_rate*pop/365)))
+        		deaths_scaled        = log(deaths_new/deaths_div_by))
     	    }else{
 		it <- it %>% 
 		    mutate(confirmed_scaled     = log(confirmed/tests),
-        		deaths_scaled        = log(deaths/(1:length(deaths)*pop_death_rate*pop/365))
-        		)
+        		deaths_scaled        = log(deaths_new/deaths_div_by))        		
     	    }
 	}else{
 	    if (b_dodaily){
 		it <- it %>% 
 		     mutate(confirmed_scaled     = (confirmed/tests),
     			confirmed_new_scaled = (confirmed_new/tests_new),
-    			deaths_scaled        = (deaths/(1:length(deaths)*pop_death_rate*pop/365)))
+    			deaths_scaled        = (deaths_new/deaths_div_by))
     	    }else{
     		it <- it %>% 
 		     mutate(confirmed_scaled     = (confirmed/tests),
-    			deaths_scaled        = (deaths/(1:length(deaths)*pop_death_rate*pop/365)))
+    			deaths_scaled        = (deaths_new/deaths_div_by))
     	    }
     }
     }else{
@@ -106,6 +143,9 @@ if (b_onlycumul){it <- subset(it, confirmed>0)}else{it <- subset(it, deaths>0)}
 	}
     }
 }
+
+it <- it %>% group_by(id)
+
 f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     res<-ggplot(data = data) 
     vMSE<-c()
@@ -113,7 +153,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
 	res<-res+geom_line(aes(x = date, y = confirmed_scaled, color = '(IT) Confirmed/Tests')) 
 	vMSE<-c(vMSE,confirmed_scaled_all=sqrt(mean((data$confirmed_scaled-dp$confirmed_scaled[1:nrow(data)])^2,na.rm=TRUE)))
 	vMSE<-c(vMSE,confirmed_scaled_dp=sqrt(mean((data$confirmed_scaled[1:min(nrow(data),length(dp$confirmed_scaled))]-dp$confirmed_scaled[1:min(nrow(data),length(dp$confirmed_scaled))])^2,na.rm=TRUE)))
-	    if (!b_onlycumul){
+	    if ((!b_onlycumul)&&!(b_scale_2020deaths)){
 		res<-res+geom_line(aes(x = date, y = deaths_scaled, color = "(IT) Deaths Scaled"))
 		vMSE<-c(vMSE,deaths_scaled=sqrt(mean((data$deaths_scaled-dp$confirmed_scaled[1:nrow(data)])^2,na.rm=TRUE)))
 	    	vMSE<-c(vMSE,deaths_scaled_dp=sqrt(mean((data$deaths_scaled[1:min(nrow(data),length(dp$confirmed_scaled))]-dp$confirmed_scaled[1:min(nrow(data),length(dp$confirmed_scaled))])^2,na.rm=TRUE)))
@@ -129,14 +169,24 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
 		geom_line(aes(x = date, y = tests_new_gr, color = '(IT) Tests')) 
 	    if (b_dolog){res<-res+geom_line(aes(x = date, y = diff_confirmed_deaths, color = '(IT) Confirmed - Tests'))}
     }    
+    if (b_scale_2020deaths){
+        if (b_plot_COVIDexcessfrac){
+            res<-res+geom_line(aes(x = date, y = excess_death_frac, color = "(IT) COVID frac excess deaths")) 	
+    	}
+        res<-res+geom_line(aes(x = date, y = weekly_death_frac, color = "(IT) COVID frac weekly deaths")) 	
+        res<-res+geom_line(aes(x = date, y = weekly_death_frac_pastavg, color = "(IT) COVID frac weekly deaths wrt past")) 	
+        res<-res+geom_line(aes(x = date, y = cumul_death_frac, color = "(IT) COVID frac cumul deaths")) 	
+        res<-res+geom_line(aes(x = date, y = cumul_death_frac_pastavg, color = "(IT) COVID frac cumul deaths wrt past")) 	
+
+    }
     res<- res+ labs(title = key, ylab = "value")
     res
     list(grplot=res,MSE=vMSE)
 }
 
 g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul)
-g
 
+g
  dirname <- paste0(dir_prefix,c_ending)
  dir.create(dirname)
  sink(file=sprintf("%s/%s%s.txt",dirname,c_sink_start,c_ending))
