@@ -73,10 +73,11 @@ if (b_scale_2020deaths){
 	  right_join(it)
 
 	it <- it %>%
-		mutate(excess_death_frac=weekly_death/excess_death,weekly_death_frac=weekly_death/weekly_death_pop,weekly_death_frac_pastavg=weekly_death/weekly_death_pop_pastavg,cumul_death_frac=deaths/cumul_total_pop_deaths_2020,cumul_death_frac_pastavg=deaths/cumul_total_pop_deaths)    
+		mutate(excess_death_frac=weekly_death/excess_death,weekly_death_frac=weekly_death/weekly_death_pop,weekly_death_frac_pastavg=weekly_death/weekly_death_pop_pastavg,cumul_death_frac=deaths/cumul_total_pop_deaths_2020,cumul_death_frac_pastavg=deaths/cumul_total_pop_deaths,death_2020_ratio=pop_deaths_2020/pop_deaths)    
     }
     
     if (!is.na(pop_2020_end_date)){
+	it$death_2020_ratio[which(it$date > pop_2020_end_date)]<-NA
 	it$pop_deaths_2020[which(it$date > pop_2020_end_date)]<-NA
 	it$excess_death[which(it$date > pop_2020_end_date)]<-NA
 	it$excess_death_frac[which(it$date > pop_2020_end_date)]<-NA
@@ -96,6 +97,7 @@ if (b_scale_2020deaths){
         it$weekly_death_frac_pastavg <- log(it$weekly_death_frac)
         it$cumul_death_frac <- log(it$cumul_death_frac)
         it$cumul_death_frac_pastavg <- log(it$cumul_death_frac_pastavg)        
+        it$death_2020_ratio <- log(it$death_2020_ratio)
     }
 }else{
     it <- it %>% 
@@ -177,7 +179,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
         res<-res+geom_line(aes(x = date, y = weekly_death_frac_pastavg, color = "(IT) COVID frac weekly deaths wrt past")) 	
         res<-res+geom_line(aes(x = date, y = cumul_death_frac, color = "(IT) COVID frac cumul deaths")) 	
         res<-res+geom_line(aes(x = date, y = cumul_death_frac_pastavg, color = "(IT) COVID frac cumul deaths wrt past")) 	
-
+        res<-res+geom_line(aes(x = date, y = death_2020_ratio, color = "(IT) deaths in 2020 wrt past")) 	
     }
     res<- res+ labs(title = key, ylab = "value")
     res

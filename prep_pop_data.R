@@ -98,6 +98,7 @@ it3 <- it2 %>%
   summarise(date = max(date),
             excess_death = sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             excess_death_frac = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
+            death_2020_ratio = sum(pop_deaths_2020,na.rm=TRUE)/sum(pop_deaths,na.rm=TRUE),
             weekly_death = sum(deaths_new,na.rm=TRUE), ## COVID positive deaths in each week
             weekly_death_frac = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths_2020,na.rm=TRUE), ## fracion of COVID positive deaths in week
             weekly_death_frac_pastavg = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths,na.rm=TRUE), ## fracion of COVID positive deaths in week
@@ -118,7 +119,7 @@ for (i in 1:nrow(it3)){
 it3<- it3 %>% 
         mutate(cumul_death_frac = deaths/cumul_total_pop_deaths_2020,cumul_death_frac_pastavg = deaths/cumul_total_pop_deaths)
 it2<- it2 %>% 
-        mutate(excess_death=NA,excess_death_frac=NA,weekly_death=NA,weekly_death_pop=NA,weekly_death_pop_pastavg=NA,weekly_death_frac=NA,weekly_death_frac_pastavg=NA,cumul_total_pop_deaths=NA,cumul_total_pop_deaths_2020=NA,cumul_death_frac=NA,cumul_death_frac_pastavg=NA,deaths_cumul=NA)
+        mutate(excess_death=NA,excess_death_frac=NA,weekly_death=NA,weekly_death_pop=NA,weekly_death_pop_pastavg=NA,weekly_death_frac=NA,weekly_death_frac_pastavg=NA,cumul_total_pop_deaths=NA,cumul_total_pop_deaths_2020=NA,cumul_death_frac=NA,cumul_death_frac_pastavg=NA,deaths_cumul=NA,death_2020_ratio=NA)
         
 for (i in 1:nrow(it2)){
 ## copy all the data to it2, with a flat value for each week
@@ -137,6 +138,7 @@ for (i in 1:nrow(it2)){
     it2[i,"cumul_total_pop_deaths"]<-it3_state[i_week,"cumul_total_pop_deaths"]
     it2[i,"cumul_death_frac_pastavg"]<-it3_state[i_week,"cumul_death_frac_pastavg"]
     it2[i,"deaths_cumul"]<-it3_state[i_week,"deaths"]
+    it2[i,"death_2020_ratio"]<-it3_state[i_week,"death_2020_ratio"]
 }
 #group_map(it3, function(x, g){
 #  plot(x$excess_death_frac ~ x$date, main = g)
