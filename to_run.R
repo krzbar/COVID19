@@ -27,8 +27,10 @@ require(ggplot2)
 require(tidyverse)
 require(hrbrthemes)
 require(COVID19) 
+require(lubridate)
 
-pop_2020_end_date<-"2020-03-21"
+pop_2020_end_date<-"2020-03-28"
+pop_date_till<-today()
 dir_prefix<-"it" ## this is the prefix of the directory that will be great where the output graphs will be saved in
 
 b_visualize_Italy<-FALSE
@@ -58,7 +60,7 @@ list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=
 )
 
 for (setup in lsetups)
-#setup<-lsetups[[6]]
+#setup<-lsetups[[5]]
 {
 ## Control variables what to plot
     b_onlycumul<-setup$b_onlycumul ## do we only plot the cumulative tested curve

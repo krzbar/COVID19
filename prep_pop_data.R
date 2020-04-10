@@ -80,14 +80,14 @@ x2 <- x1 %>%
                              TOTALE_2019)/5)
 
 
-x2$week <- as.integer((x2$date - as.Date("2020-01-05"))/7)
-it_tmp$week <- as.integer((it_tmp$date - as.Date("2020-01-05"))/7)
+x2$week <- as.integer((x2$date - as.Date(pop_date_till))/7)
+it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till))/7)
 
 x3 <- x2
 x3$date <- NULL
 it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("state","week")))
 
-# fill pop_deaths in the period 21 March - 31 March (data not available from ISTAT)
+# fill pop_deaths in the period 21 March - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
 it2 <- it2 %>% fill(pop_deaths)
 
