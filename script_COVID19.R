@@ -169,7 +169,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     }else{
     	    res<-res+geom_line(aes(x = date, y = confirmed_new_gr, color = "(IT) Confirmed")) +
 		geom_line(aes(x = date, y = tests_new_gr, color = '(IT) Tests')) 
-	    if (b_dolog){res<-res+geom_line(aes(x = date, y = diff_confirmed_deaths, color = '(IT) Confirmed - Tests'))}
+	    if (b_dolog){res<-res+geom_line(aes(x = date, y = diff_confirmed_deaths, color = '(IT) Tests - Confirmed'))}
     }    
     if (b_scale_2020deaths){
         if (b_plot_COVIDexcessfrac){
