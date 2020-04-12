@@ -193,7 +193,7 @@ g
  dir.create(dirname)
  sink(file=sprintf("%s/%s%s.txt",dirname,c_sink_start,c_ending))
  for(i in 1:length(g)){
-   name <- strsplit(as.character(group_keys(it)[i,1]), split = "|", fixed = T)[[1]][2]
+   name <- as.character(group_keys(it)[i,1])
    cat(name);cat("\n")
    print(g[[i]]$MSE)
    cat("=============================================================");   cat("\n")
