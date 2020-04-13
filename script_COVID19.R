@@ -38,7 +38,7 @@ if (!b_donumtest){
 if (b_onlycumul){
     c_ending<-paste0(c_ending,"_onlycumul")
 }
-dp <- diamond() 
+dp <- covid19("DPC")
 dp <- subset(dp, confirmed>0)
 if (b_dolog){
     dp$confirmed_scaled <- log(dp$confirmed/(dp$pop))
@@ -47,8 +47,15 @@ if (b_dolog){
 }
 
 if (b_regions){
-    it <- italy("state")
-}else{it <- italy("country")}
+    it <- covid19("ITA", 2)
+}else{it <- covid19("ITA", 1)}
+
+it <- it %>%
+  dplyr::group_by(country, state, city) %>%
+  dplyr::mutate(confirmed_new = c(confirmed[1], pmax(0,diff(confirmed))),
+                tests_new     = c(tests[1],     pmax(0,diff(tests))),
+                deaths_new    = c(deaths[1],    pmax(0,diff(deaths))))
+
 if (b_scale_2020deaths){
 ## connect with whole population death data
     source("prep_pop_data.R")
@@ -146,7 +153,7 @@ if (b_scale_2020deaths){
     }
 }
 
-it <- it %>% group_by(id)
+it <- it %>% group_by(country, state, city)
 
 f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     res<-ggplot(data = data) 
@@ -193,7 +200,7 @@ g
  dir.create(dirname)
  sink(file=sprintf("%s/%s%s.txt",dirname,c_sink_start,c_ending))
  for(i in 1:length(g)){
-   name <- as.character(group_keys(it)[i,1])
+   name <- group_keys(it)[i,2][[1]]
    cat(name);cat("\n")
    print(g[[i]]$MSE)
    cat("=============================================================");   cat("\n")
@@ -204,13 +211,4 @@ g
  sink()
 
 
-if (b_visualize_Italy){
-# data visualization
- geomap(it, 
-        map          = "italy", 
-        value        = "deaths_scaled",
-        caption      = "Data source: Ministero della Salute, Dipartimento della Protezione Civile, Italia",
-        legend.title = "Log Scaled Deaths",
-        filename     = "scaled-deaths.gif",
-        end_pause    = 30)
-}
+
