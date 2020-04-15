@@ -68,7 +68,12 @@ x1$date <- as.Date(sapply(x1$SETTIMANA, function(d){
 
 ######### merge with COVID data #########
 require(COVID19)
-it_tmp <- italy()
+it_tmp <- covid19("ITA", 2) %>%
+  dplyr::group_by(country, state, city) %>%
+  dplyr::mutate(confirmed_new = c(confirmed[1], pmax(0,diff(confirmed))),
+                tests_new     = c(tests[1],     pmax(0,diff(tests))),
+                deaths_new    = c(deaths[1],    pmax(0,diff(deaths))))
+
 
 x2 <- x1 %>% 
   group_by(state, date) %>%
@@ -94,7 +99,7 @@ it2 <- it2 %>% fill(pop_deaths)
 
 # weekly deaths/(pop_death_2020-pop_death)
 it3 <- it2 %>%
-  group_by(id, state, country, week) %>% 
+  group_by(country, state, country, week) %>% 
   summarise(date = max(date),
             excess_death = sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             excess_death_frac = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
@@ -140,11 +145,6 @@ for (i in 1:nrow(it2)){
     it2[i,"deaths_cumul"]<-it3_state[i_week,"deaths"]
     it2[i,"death_2020_ratio"]<-it3_state[i_week,"death_2020_ratio"]
 }
-#group_map(it3, function(x, g){
-#  plot(x$excess_death_frac ~ x$date, main = g)
-#})
-
-## print(it2$excess_death_frac[which(it2$state=="Lombardia")])
 
 
 
