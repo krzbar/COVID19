@@ -153,7 +153,12 @@ if (b_scale_2020deaths){
     }
 }
 
-it <- it %>% group_by(country, state, city)
+it <- it %>% 
+  arrange(date) %>%
+  group_by(country, state, city) 
+
+dp <- dp %>%
+  arrange(date)
 
 f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     res<-ggplot(data = data) 
