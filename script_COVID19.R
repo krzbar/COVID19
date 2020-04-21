@@ -142,7 +142,8 @@ if (b_scale_2020deaths){
 	    it <- it %>% 
 		mutate(confirmed_new_gr = log(confirmed_new),
     		    tests_new_gr = log(tests_new),
-    		    diff_confirmed_deaths= log(tests_new)-log(confirmed_new)
+    		    diff_confirmed_new= log(confirmed_new)-log(tests_new),
+    		    diff_confirmed_cumul= log(confirmed)-log(tests)
         	)
 	}else{
 	    it <- it %>% 
@@ -160,7 +161,7 @@ it <- it %>%
 dp <- dp %>%
   arrange(date)
 
-f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
+f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest){
     res<-ggplot(data = data) 
     vMSE<-c()
     if (! b_donumtest){
@@ -181,7 +182,81 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     }else{
     	    res<-res+geom_line(aes(x = date, y = confirmed_new_gr, color = "(IT) Confirmed")) +
 		geom_line(aes(x = date, y = tests_new_gr, color = '(IT) Tests')) 
-	    if (b_dolog){res<-res+geom_line(aes(x = date, y = diff_confirmed_deaths, color = '(IT) Tests - Confirmed'))}
+	    if (b_dolog){
+		res<-res+geom_line(aes(x = date, y = diff_confirmed_new, color = '(IT) Confirmed - Tests'))
+		res<-res+geom_line(aes(x = date, y = diff_confirmed_cumul, color = '(IT) Confirmed - Tests cumulative'))
+		if (b_do_lm_numtest){
+		    c_reg<-strsplit(data$id[1],", ")[[1]][2]
+		    if (is.na(c_reg)){c_reg<-"Italy"}
+		    dfdata_cutoff<-read.csv("NumTest_dates.csv",header=TRUE,sep=";")
+		    i_reg<-which(dfdata_cutoff$region==c_reg)
+		    sink("LM_difflogcofirmestested_slopeontime.txt",append=TRUE)
+		    print(c_reg)
+		    if (!is.na(dfdata_cutoff[i_reg,"date_cutoff"])){
+			data_for_lm<-data
+			if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])){
+			    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
+			    ##data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
+			}
+			data_for_lm<-data_for_lm[which(data_for_lm$date>=dfdata_cutoff[i_reg,"date_cutoff"]),]
+			if (!is.na(dfdata_cutoff[i_reg,"end_date"])){
+			    data_for_lm<-data_for_lm[which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]),]
+			}
+			data_for_lm$diff_confirmed_new[c(which(is.infinite(data_for_lm$diff_confirmed_new),is.nan(data_for_lm$diff_confirmed_new)))]<-NA
+			data_for_lm$diff_confirmed_cumul[c(which(is.infinite(data_for_lm$diff_confirmed_cumul),is.nan(data_for_lm$diff_confirmed_cumul)))]<-NA
+			data_for_lm$t <- 1:nrow(data_for_lm)
+			mod_new <- lm(diff_confirmed_new ~ t, data = data_for_lm,na.action="na.exclude")
+			ci_new <- predict(mod_new, newdata = data_for_lm, interval = 'prediction')
+			mod_cumul <- lm(diff_confirmed_cumul ~ t, data = data_for_lm,na.action="na.exclude")
+			ci_cumul <- predict(mod_new, newdata = data_for_lm, interval = 'prediction')
+			data$ci_lwr_new<-NA
+			data$ci_upr_new<-NA			
+			data$pred_diff_new<-NA			
+			data$ci_lwr_cumul<-NA
+			data$ci_upr_cumul<-NA			
+			data$pred_diff_cumul<-NA			
+			v_dates_for_lm_indices<-which(data$date>=dfdata_cutoff[i_reg,"date_cutoff"])
+			if (!is.na(dfdata_cutoff[i_reg,"end_date"])){
+			    v_dates_for_lm_indices<-intersect(v_dates_for_lm_indices,which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]))
+			}
+			data$pred_diff_new[v_dates_for_lm_indices]<-ci_new[,1]
+			data$ci_lwr_new[v_dates_for_lm_indices]<-ci_new[,2]
+			data$ci_upr_new[v_dates_for_lm_indices]<-ci_new[,3]
+			data$pred_diff_cumul[v_dates_for_lm_indices]<-ci_cumul[,1]
+			data$ci_lwr_cumul[v_dates_for_lm_indices]<-ci_cumul[,2]
+			data$ci_upr_cumul[v_dates_for_lm_indices]<-ci_cumul[,3]
+
+			#res<-res+  geom_line(aes(y = ci[,1],)) +   geom_ribbon(aes(ymin = ci[,2], ymax = ci[,3]), alpha = 0.4) 
+			#res<-res+   geom_ribbon(aes(x=date,ymin = data$ci_lwr, ymax = data$ci_upr), alpha = 0.4) 
+			if (is.na(dfdata_cutoff[i_reg,"end_date"])){
+			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
+			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
+			    
+			    #res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_new))
+			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_cumul))
+			}else{
+			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
+			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
+			    
+			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_new))
+			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_cumul))
+			}
+			summ_lm_new<-summary(mod_new)
+			summ_lm_cumul<-summary(mod_cumul)
+			ci_slope_new<-c(summ_lm_new$coefficients[2,1]-qnorm(0.975)*summ_lm_new$coefficients[2,2],summ_lm_new$coefficients[2,1]+qnorm(0.975)*summ_lm_new$coefficients[2,2])
+			print(paste0("Estimated slope and its 95% confidence interval (new): ",format(round(summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_new[1], 3), nsmall = 3),",",format(round(ci_slope_new[2], 3), nsmall = 3),")"))
+			print(paste0("Half-life in days and its 95% confidence interval (new): ",format(round((-1)*log(2)/summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round((-1)*log(2)/ci_slope_new[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_new[2], 3), nsmall = 3),")"))
+
+			ci_slope_cumul<-c(summ_lm_cumul$coefficients[2,1]-qnorm(0.975)*summ_lm_cumul$coefficients[2,2],summ_lm_cumul$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul$coefficients[2,2])
+			print(paste0("Estimated slope and its 95% confidence interval (cumulative): ",format(round(summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_cumul[1], 3), nsmall = 3),",",format(round(ci_slope_cumul[2], 3), nsmall = 3),")"))
+			print(paste0("Doubling time in days and its 95% confidence interval (cumulative): ",format(round(log(2)/summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(log(2)/ci_slope_cumul[2], 3), nsmall = 3),",",format(round(log(2)/ci_slope_cumul[1], 3), nsmall = 3),")"))
+		    }else{
+			print(c(NA,NA))
+		    }
+		    print("=======================================")
+		    sink()
+		}
+	    }
     }    
     if (b_scale_2020deaths){
         if (b_plot_COVIDexcessfrac){
@@ -198,7 +273,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul){
     list(grplot=res,MSE=vMSE)
 }
 
-g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul)
+g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest)
 
 g
  dirname <- paste0(dir_prefix,c_ending)

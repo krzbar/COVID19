@@ -37,26 +37,27 @@ b_visualize_Italy<-FALSE
 b_scale_2020deaths_tmp<-TRUE   ## do we want to do scaling with the 2020 weekly deaths
 b_plot_COVIDexcessfrac_tmp<-TRUE ## do we plot the excess death information
 b_plot_daily_tests<-FALSE ## at the moment this does not have an effect on the file naming, so as not to change the LaTeX
+b_do_lm_numtest<-TRUE
 
 ## List of various plot setups
 lsetups<-list(
 ## Visualization of positive fraction of tests
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE),
+list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
+list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
+list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
 
 ## Visualization of scaled deaths and cumulative fraction of positive tests
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp),
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp),
+list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
 
 ## Visualization of  only cumulative
-list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE),
-list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE)
+list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE)
 )
 
 for (setup in lsetups)
@@ -70,6 +71,7 @@ for (setup in lsetups)
     b_donumtest<-setup$b_donumtest ## plot of the number of postive tests versus number of tests
     b_scale_2020deaths<-setup$b_scale_2020deaths
     b_plot_COVIDexcessfrac<-setup$b_plot_COVIDexcessfrac
+    b_do_lm_numtest<-setup$b_do_lm_numtest
 
     source("script_COVID19.R")
 }
