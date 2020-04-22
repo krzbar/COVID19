@@ -32,6 +32,7 @@ require(lubridate)
 pop_2020_end_date<-"2020-03-28"
 pop_date_till<-today()
 dir_prefix<-"it" ## this is the prefix of the directory that will be great where the output graphs will be saved in
+gg <- list() ## store plots
 
 b_visualize_Italy<-FALSE
 b_scale_2020deaths_tmp<-TRUE   ## do we want to do scaling with the 2020 weekly deaths
@@ -76,3 +77,4 @@ for (setup in lsetups)
     source("script_COVID19.R")
 }
 
+source("plots.R")

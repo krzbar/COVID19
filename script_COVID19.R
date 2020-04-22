@@ -178,7 +178,9 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 		vMSE<-c(vMSE,confirmed_new_scaled=sqrt(mean((data$confirmed_new_scaled-dp$confirmed_scaled[1:nrow(data)])^2,na.rm=TRUE)))
 	    	vMSE<-c(vMSE,confirmed_new_scaled_dp=sqrt(mean((data$confirmed_new_scaled[1:min(nrow(data),length(dp$confirmed_scaled))]-dp$confirmed_scaled[1:min(nrow(data),length(dp$confirmed_scaled))])^2,na.rm=TRUE)))
 	    }
-	res<-res+geom_line(aes(x = date, y = dp$confirmed_scaled[1:nrow(data)], color = '(DP) Confirmed Scaled')) 
+	xdp <- dp[1:nrow(data),]
+	xdp$date <- data$date[1:nrow(data)]
+	res<-res+geom_line(data = xdp, size = 2, aes(x = date, y = confirmed_scaled, color = '(DP) Confirmed Scaled')) 
     }else{
     	    res<-res+geom_line(aes(x = date, y = confirmed_new_gr, color = "(IT) Confirmed")) +
 		geom_line(aes(x = date, y = tests_new_gr, color = '(IT) Tests')) 
@@ -268,9 +270,11 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
         res<-res+geom_line(aes(x = date, y = cumul_death_frac_pastavg, color = "(IT) COVID frac cumul deaths wrt past")) 	
         res<-res+geom_line(aes(x = date, y = death_2020_ratio, color = "(IT) deaths in 2020 wrt past")) 	
     }
-    res<- res+ labs(title = key, ylab = "value")
+    title <- ifelse(is.na(key$state), key$country, key$state)
+    if(b_dolog) title <- paste(title,"(log)")
+    res <- res + ggtitle(title) + ylab("") + xlab("") + theme(legend.title = element_blank())
     res
-    list(grplot=res,MSE=vMSE)
+    list(grplot=res,MSE=vMSE, title = title)
 }
 
 g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest)
@@ -290,5 +294,6 @@ g
  }
  sink()
 
-
-
+# store all plots
+gg[[length(gg)+1]] <- g
+ 
