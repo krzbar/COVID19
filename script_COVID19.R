@@ -38,7 +38,7 @@ if (!b_donumtest){
 if (b_onlycumul){
     c_ending<-paste0(c_ending,"_onlycumul")
 }
-dp <- covid19("DPC")
+dp <- covid19("DPC", vintage = TRUE, end = '2020-04-20')
 dp <- subset(dp, confirmed>0)
 if (b_dolog){
     dp$confirmed_scaled <- log(dp$confirmed/(dp$pop))
@@ -47,8 +47,8 @@ if (b_dolog){
 }
 
 if (b_regions){
-    it <- covid19("ITA", 2)
-}else{it <- covid19("ITA", 1)}
+    it <- covid19("ITA", 2, vintage = TRUE, start = '2020-02-24', end = '2020-04-20')
+}else{it <- covid19("ITA", 1, vintage = TRUE, start = '2020-02-24', end = '2020-04-20')}
 
 it <- it %>%
   dplyr::group_by(country, state, city) %>%

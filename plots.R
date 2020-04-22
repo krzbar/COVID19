@@ -65,7 +65,7 @@ doplots(10, 12, 'g6')
 
 ############################## ALL
 
-x <- covid19('ITA', 2)
+x <- covid19('ITA', 2, vintage = TRUE, start = '2020-02-24', end = '2020-04-20')
 
 x$frac_confirmed <- x$confirmed/x$tests
 x$frac_confirmed[is.infinite(x$frac_confirmed)] <- NA

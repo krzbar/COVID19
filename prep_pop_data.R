@@ -68,7 +68,7 @@ x1$date <- as.Date(sapply(x1$SETTIMANA, function(d){
 
 ######### merge with COVID data #########
 require(COVID19)
-it_tmp <- covid19("ITA", 2) %>%
+it_tmp <- covid19("ITA", 2, vintage = TRUE, start = '2020-02-24', end = '2020-04-20') %>%
   dplyr::group_by(country, state, city) %>%
   dplyr::mutate(confirmed_new = c(confirmed[1], pmax(0,diff(confirmed))),
                 tests_new     = c(tests[1],     pmax(0,diff(tests))),
