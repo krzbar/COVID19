@@ -29,8 +29,18 @@ require(hrbrthemes)
 require(COVID19) 
 require(lubridate)
 
-pop_2020_end_date<-"2020-03-28"
-pop_date_till<-today()
+data_study_date_start<-"2020-02-24"
+data_study_date_end<-"2020-04-20"
+
+it_object_RData_file_toload_prefix<-"it_object_2020422"
+it_object_RData_file_tosave_prefix<-"it_object_2020422"
+pop_2020_end_date<-"2020-04-04"
+
+if (!is.na(data_study_date_end)){
+    pop_date_till<-as.Date(data_study_date_end)
+}else{
+    pop_date_till<-today()
+}
 dir_prefix<-"it" ## this is the prefix of the directory that will be great where the output graphs will be saved in
 gg <- list() ## store plots
 
@@ -43,27 +53,28 @@ b_do_lm_numtest<-TRUE
 ## List of various plot setups
 lsetups<-list(
 ## Visualization of positive fraction of tests
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(index_setup=1,b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
+list(index_setup=2,b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=b_do_lm_numtest),
+list(index_setup=3,b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(index_setup=4,b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=TRUE,b_scale_2020deaths=FALSE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
 
 ## Visualization of scaled deaths and cumulative fraction of positive tests
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
-list(b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
-list(b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(index_setup=5,b_onlycumul=FALSE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(index_setup=6,b_onlycumul=FALSE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(index_setup=7,b_onlycumul=FALSE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
+list(index_setup=8,b_onlycumul=FALSE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=b_plot_daily_tests,b_donumtest=FALSE,b_scale_2020deaths=b_scale_2020deaths_tmp,b_plot_COVIDexcessfrac=b_plot_COVIDexcessfrac_tmp,b_do_lm_numtest=FALSE),
 
 ## Visualization of  only cumulative
-list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
-list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
-list(b_onlycumul=TRUE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
-list(b_onlycumul=TRUE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE)
+list(index_setup=9,b_onlycumul=TRUE,b_regions=TRUE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(index_setup=10,b_onlycumul=TRUE,b_regions=FALSE,b_dolog=TRUE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(index_setup=11,b_onlycumul=TRUE,b_regions=TRUE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE),
+list(index_setup=12,b_onlycumul=TRUE,b_regions=FALSE,b_dolog=FALSE,b_dodaily=FALSE,b_donumtest=FALSE,b_scale_2020deaths=TRUE,b_plot_COVIDexcessfrac=FALSE,b_do_lm_numtest=FALSE)
 )
 
-for (setup in lsetups)
-#setup<-lsetups[[5]]
-{
+if (!is.na(it_object_RData_file_tosave_prefix)){
+    it_objects<-vector("list",length(lsetups))
+}
+for (setup in lsetups){
 ## Control variables what to plot
     b_onlycumul<-setup$b_onlycumul ## do we only plot the cumulative tested curve
     b_regions<-setup$b_regions ## regions or whole of Italy
@@ -73,8 +84,16 @@ for (setup in lsetups)
     b_scale_2020deaths<-setup$b_scale_2020deaths
     b_plot_COVIDexcessfrac<-setup$b_plot_COVIDexcessfrac
     b_do_lm_numtest<-setup$b_do_lm_numtest
-
-    source("script_COVID19.R")
+    
+    if (is.na(it_object_RData_file_toload_prefix)){
+	source("prep_it_object.R")
+    }else{
+	load(paste0(it_object_RData_file_toload_prefix,"_setup_",setup$index_setup,".RData"))
+    }
+    if (!is.na(it_object_RData_file_tosave_prefix)){
+	save.image(file=paste0(it_object_RData_file_tosave_prefix,"_setup_",setup$index_setup,".RData"))
+    }
+    source("create_plots.R")  
 }
 
-source("plots.R")
+source("do_plots.R")
