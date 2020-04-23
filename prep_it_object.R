@@ -101,7 +101,7 @@ if (b_scale_2020deaths){
     if (b_dolog){
         it$excess_death_frac <- log(it$excess_death_frac)
         it$weekly_death_frac <- log(it$weekly_death_frac)
-        it$weekly_death_frac_pastavg <- log(it$weekly_death_frac)
+        it$weekly_death_frac_pastavg <- log(it$weekly_death_frac_pastavg)
         it$cumul_death_frac <- log(it$cumul_death_frac)
         it$cumul_death_frac_pastavg <- log(it$cumul_death_frac_pastavg)        
         it$death_2020_ratio <- log(it$death_2020_ratio)
