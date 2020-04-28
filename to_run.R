@@ -29,6 +29,10 @@ require(hrbrthemes)
 require(COVID19) 
 require(lubridate)
 
+data_study_date_start<-"2020-02-24"
+data_study_date_end<-"2020-04-20"
+
+
 data_study_date_start<-"2020-02-24" ## date from which we start downloading the data via COVID
 data_study_date_end<-"2020-04-20" ## date until which we download the data via COVID
 
@@ -97,3 +101,4 @@ for (setup in lsetups){
 }
 
 source("do_plots.R")
+source("ITAgeMortality.R")
