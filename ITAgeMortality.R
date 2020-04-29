@@ -77,6 +77,11 @@ x2 <- x1 %>%
 x1<-x2
 
 x1$week <- as.integer((x1$date - as.Date(pop_date_till)))
+## correct names of regions to be consistent between the data sets
+x1$state[which(x1$state=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
+x1$state[which(x1$state=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
+x1$state[which(x1$state=="Trentino-Alto Adige/Südtirol")]<-"P. A. Bolzano/P. A. Trento"
+
 #it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till)))
 
 #x3 <- x1

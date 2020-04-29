@@ -88,11 +88,15 @@ x2 <- x1 %>%
 x2$week <- as.integer((x2$date - as.Date(pop_date_till))/7)
 it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till))/7)
 
+## correct names of regions to be consistent between the data sets
+x2$state[which(x2$state=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
+x2$state[which(x2$state=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
+
 x3 <- x2
 x3$date <- NULL
 it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("state","week")))
 
-# fill pop_deaths in the period 21 March - today (data not available from ISTAT)
+# fill pop_deaths in the period 5 April - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
 it2 <- it2 %>% fill(pop_deaths)
 
@@ -111,15 +115,41 @@ it3 <- it2 %>%
             pop_deaths_2020=sum(pop_deaths_2020,na.rm=TRUE), ##total number of deaths in week
             pop_deaths=sum(pop_deaths,na.rm=TRUE) ##total number of deaths in week
             )
+
+## P. A. Bolzano and P. A. Trento are joined in ISTAT's population deaths as one region "Trentino-Alto Adige/Sudtirol"
+it3$pop_deaths_2020[which(it3$state=="P.A. Bolzano")]<-NA
+it3$pop_deaths_2020[which(it3$state=="P.A. Trento")]<-NA
+it3$excess_death_frac[which(it3$state=="P.A. Bolzano")]<-NA
+it3$excess_death_frac[which(it3$state=="P.A. Trento")]<-NA
+it3$excess_death[which(it3$state=="P.A. Bolzano")]<-NA
+it3$excess_death[which(it3$state=="P.A. Trento")]<-NA
+it3$death_2020_ratio[which(it3$state=="P.A. Bolzano")]<-NA
+it3$death_2020_ratio[which(it3$state=="P.A. Trento")]<-NA
+it3$weekly_death_frac[which(it3$state=="P.A. Bolzano")]<-NA
+it3$weekly_death_frac[which(it3$state=="P.A. Trento")]<-NA
+it3$weekly_death_frac_pastavg[which(it3$state=="P.A. Bolzano")]<-NA
+it3$weekly_death_frac_pastavg[which(it3$state=="P.A. Trento")]<-NA
+
+
+
 it3<- it3 %>% 
         mutate(cumul_total_pop_deaths=NA,cumul_total_pop_deaths_2020=NA)
 
 for (i in 1:nrow(it3)){
 ## get cumulative number of deaths till end of week in each region
     it3_state<-it3[which(it3$state==it3$state[i]),]
-    it3$cumul_total_pop_deaths_2020[i]<-sum(it3_state$pop_deaths_2020[which(it3_state$date<=it3$date[i])])
-    it3$cumul_total_pop_deaths[i]<-sum(it3_state$pop_deaths[which(it3_state$date<=it3$date[i])])
+    # it3$cumul_total_pop_deaths_2020[i]<-sum(it3_state$pop_deaths_2020[which(it3_state$date<=it3$date[i])])
+    # it3$cumul_total_pop_deaths[i]<-sum(it3_state$pop_deaths[which(it3_state$date<=it3$date[i])])
+    time_first_death <- min(it3_state$date[it3_state$deaths>0])
+    it3$cumul_total_pop_deaths_2020[i]<-sum(it3_state$pop_deaths_2020[which(it3_state$date>=time_first_death & it3_state$date<=it3$date[i])],na.rm=TRUE)
+    it3$cumul_total_pop_deaths[i]<-sum(it3_state$pop_deaths[which(it3_state$date>=time_first_death & it3_state$date<=it3$date[i])],na.rm=TRUE)
 }
+
+## P. A. Bolzano and P. A. Trento are joined in ISTAT's population deaths as one region "Trentino-Alto Adige/Sudtirol"
+it3$cumul_total_pop_deaths_2020[which(it3$state=="P.A. Bolzano")]<-NA
+it3$cumul_total_pop_deaths_2020[which(it3$state=="P.A. Trento")]<-NA
+it3$cumul_total_pop_deaths[which(it3$state=="P.A. Bolzano")]<-NA
+it3$cumul_total_pop_deaths[which(it3$state=="P.A. Trento")]<-NA
 
 it3<- it3 %>% 
         mutate(cumul_death_frac = deaths/cumul_total_pop_deaths_2020,cumul_death_frac_pastavg = deaths/cumul_total_pop_deaths)
