@@ -98,7 +98,10 @@ it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("state","week"))
 
 # fill pop_deaths in the period 5 April - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
-it2 <- it2 %>% fill(pop_deaths)
+it2 <- it2 %>% 
+  group_by(id) %>%
+  arrange(id, date) %>%
+  fill(pop_deaths)
 
 
 # weekly deaths/(pop_death_2020-pop_death)
