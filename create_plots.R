@@ -23,7 +23,7 @@
 ## bugs to Krzysztof Bartoszek at krzbar@protonmail.ch .
 
 f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest){
-    res<-ggplot(data = data) 
+  res<-ggplot(data = data) 
     vMSE<-c()
     if (! b_donumtest){
 	res<-res+geom_line(aes(x = date, y = confirmed_scaled, color = '(IT) Confirmed/Tests')) 
@@ -49,20 +49,20 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 		res<-res+geom_line(aes(x = date, y = diff_confirmed_new, color = '(IT) Confirmed - Tests'))
 		res<-res+geom_line(aes(x = date, y = diff_confirmed_cumul, color = '(IT) Confirmed - Tests cumulative'))
 		if (b_do_lm_numtest){
-		    c_reg<-strsplit(data$id[1],", ")[[1]][2]
+		    c_reg<-key[['administrative_area_level_2']]
 		    if (is.na(c_reg)){c_reg<-"Italy"}
 		    dfdata_cutoff<-read.csv("NumTest_dates.csv",header=TRUE,sep=";")
 		    i_reg<-which(dfdata_cutoff$region==c_reg)
 		    sink("LM_difflogcofirmestested_slopeontime.txt",append=TRUE)
 		    print(c_reg)
-		    if (!is.na(dfdata_cutoff[i_reg,"date_cutoff"])){
+		    if (!is.na(dfdata_cutoff[i_reg,"date_cutoff"]))if(dfdata_cutoff[i_reg,"date_cutoff"]!=""){
 			data_for_lm<-data
-			if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])){
+			if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])) if(dfdata_cutoff[i_reg,"remove_datefrom"]!="") {
 			    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
 			    ##data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
 			}
 			data_for_lm<-data_for_lm[which(data_for_lm$date>=dfdata_cutoff[i_reg,"date_cutoff"]),]
-			if (!is.na(dfdata_cutoff[i_reg,"end_date"])){
+			if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
 			    data_for_lm<-data_for_lm[which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]),]
 			}
 			data_for_lm$diff_confirmed_new[c(which(is.infinite(data_for_lm$diff_confirmed_new),is.nan(data_for_lm$diff_confirmed_new)))]<-NA
@@ -79,7 +79,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			data$ci_upr_cumul<-NA			
 			data$pred_diff_cumul<-NA			
 			v_dates_for_lm_indices<-which(data$date>=dfdata_cutoff[i_reg,"date_cutoff"])
-			if (!is.na(dfdata_cutoff[i_reg,"end_date"])){
+			if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
 			    v_dates_for_lm_indices<-intersect(v_dates_for_lm_indices,which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]))
 			}
 			data$pred_diff_new[v_dates_for_lm_indices]<-ci_new[,1]
@@ -91,7 +91,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 
 			#res<-res+  geom_line(aes(y = ci[,1],)) +   geom_ribbon(aes(ymin = ci[,2], ymax = ci[,3]), alpha = 0.4) 
 			#res<-res+   geom_ribbon(aes(x=date,ymin = data$ci_lwr, ymax = data$ci_upr), alpha = 0.4) 
-			if (is.na(dfdata_cutoff[i_reg,"end_date"])){
+			if (is.na(dfdata_cutoff[i_reg,"end_date"]) | dfdata_cutoff[i_reg,"end_date"]==""){
 			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
 			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
 			    
@@ -131,7 +131,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
         res<-res+geom_line(aes(x = date, y = cumul_death_frac_pastavg, color = "(IT) COVID frac cumul deaths wrt past")) 	
         res<-res+geom_line(aes(x = date, y = death_2020_ratio, color = "(IT) deaths in 2020 wrt past")) 	
     }
-    title <- ifelse(is.na(key$state), key$country, key$state)
+    title <- ifelse(is.na(key$administrative_area_level_2), key$administrative_area_level_1, key$administrative_area_level_2)
     if(b_dolog) title <- paste(title,"(log)")
     res <- res + ggtitle(title) + ylab("") + xlab("") + theme(legend.title = element_blank())
     res

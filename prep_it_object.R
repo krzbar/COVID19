@@ -41,9 +41,9 @@ if (b_onlycumul){
 dp <- covid19("DPC", vintage = TRUE, end = data_study_date_end)
 dp <- subset(dp, confirmed>0)
 if (b_dolog){
-    dp$confirmed_scaled <- log(dp$confirmed/(dp$pop))
+    dp$confirmed_scaled <- log(dp$confirmed/(dp$population))
 }else{
-    dp$confirmed_scaled <- (dp$confirmed/(dp$pop))
+    dp$confirmed_scaled <- (dp$confirmed/(dp$population))
 }
 
 if (b_regions){
@@ -51,7 +51,7 @@ if (b_regions){
 }else{it <- covid19("ITA", 1,  vintage = TRUE, start = data_study_date_start, end = data_study_date_end)}
 
 it <- it %>%
-  dplyr::group_by(country, state, city) %>%
+  dplyr::group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3) %>%
   dplyr::mutate(confirmed_new = c(confirmed[1], pmax(0,diff(confirmed))),
                 tests_new     = c(tests[1],     pmax(0,diff(tests))),
                 deaths_new    = c(deaths[1],    pmax(0,diff(deaths))))
@@ -67,7 +67,7 @@ if (b_scale_2020deaths){
 	## do the same thing that is in prep_pop_data.R (but there it is for region)
 	
 	it <- it2 %>% 
-	  group_by(country, date) %>%
+	  group_by(administrative_area_level_1, date) %>%
 	  summarise(pop_deaths = sum(pop_deaths,na.rm=TRUE),
 	            pop_deaths_2020 = sum(pop_deaths_2020,na.rm=TRUE),
 	            excess_death=sum(excess_death,na.rm=TRUE),
@@ -107,8 +107,14 @@ if (b_scale_2020deaths){
         it$death_2020_ratio <- log(it$death_2020_ratio)
     }
 }else{
+  
+  if(b_regions){
+    istat <- read.csv("ITA.csv")
+    it <- merge(it, istat[,c('id','pop_death_rate')], by.x = 'administrative_area_level_2', by.y = 'id', all.x = TRUE)
+  }else {it$pop_death_rate <- 0.0107}
+  
     it <- it %>% 
-	mutate(deaths_div_by=(pop_death_rate*pop/365),deaths_div_by_cumul=(1:length(deaths)*pop_death_rate*pop/365),deaths_cumul=deaths)
+	mutate(deaths_div_by=(pop_death_rate*population/365),deaths_div_by_cumul=(1:length(deaths)*pop_death_rate*population/365),deaths_cumul=deaths)
 }
 
 
@@ -156,7 +162,7 @@ if (b_scale_2020deaths){
 
 it <- it %>% 
   arrange(date) %>%
-  group_by(country, state, city) 
+  group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3) 
 
 dp <- dp %>%
   arrange(date)

@@ -37,7 +37,7 @@ data_study_date_end<-"2020-04-20"
 data_study_date_start<-"2020-02-24" ## date from which we start downloading the data via COVID
 data_study_date_end<-"2020-04-20" ## date until which we download the data via COVID
 
-it_object_RData_file_toload_prefix<-"it_object_2020422" ## set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
+it_object_RData_file_toload_prefix<-NA ## set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
 it_object_RData_file_tosave_prefix<-"it_object_2020422" ## prefix of files to save data prepared for plotting.
 pop_2020_end_date<-"2020-04-04" ## when do the deceased data in the file "comuni_settimana.csv" end
 

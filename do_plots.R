@@ -106,13 +106,13 @@ x$frac_deaths    <- x$deaths/x$confirmed
 x$frac_deaths[is.infinite(x$frac_deaths)] <- NA
 
 g1 <- ggplot(x, aes(x = date)) + 
-  geom_line(aes(y = frac_confirmed, group = id, color = state)) +
+  geom_line(aes(y = frac_confirmed, group = id, color = administrative_area_level_2)) +
   ggtitle("Confirmed / Tested") +
   ylab("") + xlab("") + 
   theme(legend.title = element_blank())
 
 g2 <- ggplot(x, aes(x = date)) + 
-  geom_line(aes(y = frac_deaths, group = id, color = state)) +
+  geom_line(aes(y = frac_deaths, group = id, color = administrative_area_level_2)) +
   ggtitle("Deaths / Confirmed") +
   ylab("") + xlab("") 
   theme(legend.title = element_blank())

@@ -67,26 +67,26 @@ x1 <- x %>% group_by(NOME_REGIONE, SETTIMANA, age) %>%
   ungroup()
 
 # clean state and date
-x1$state <- as.character(x1$NOME_REGIONE)
+x1$administrative_area_level_2 <- as.character(x1$NOME_REGIONE)
 x1$date <- as.Date(sapply(x1$SETTIMANA, function(d){
   str_split(as.character(d), pattern = '-')[[1]][2]
 }), format = "%d/%m")
 
 x2 <- x1 %>% 
-  group_by(state, date)
+  group_by(administrative_area_level_2, date)
 x1<-x2
 
 x1$week <- as.integer((x1$date - as.Date(pop_date_till)))
 ## correct names of regions to be consistent between the data sets
-x1$state[which(x1$state=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
-x1$state[which(x1$state=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
-x1$state[which(x1$state=="Trentino-Alto Adige/Südtirol")]<-"P. A. Bolzano/P. A. Trento"
+x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
+x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
+x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Trentino-Alto Adige/Südtirol")]<-"P. A. Bolzano/P. A. Trento"
 
 #it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till)))
 
 #x3 <- x1
 #x3$date <- NULL
-#it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("state","week")))
+#it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("administrative_area_level_2","week")))
 
 # fill pop_deaths in the period 21 March - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
@@ -167,7 +167,7 @@ f <- function(x, g){
 
   
 # do and save plots
-g <- x1 %>% group_by(state) %>%
+g <- x1 %>% group_by(administrative_area_level_2) %>%
   group_map(f)
 
 
