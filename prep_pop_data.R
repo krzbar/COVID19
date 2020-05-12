@@ -23,47 +23,44 @@
 ## bugs to Krzysztof Bartoszek at krzbar@protonmail.ch .
 
 ## read in population deaths data
-x <- read.csv("comuni_settimana.csv") ## csv obtained from https://www.istat.it/it/archivio/240401
+x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.') ## csv obtained from https://www.istat.it/it/archivio/240401
 
 # age
-x$age <- as.character(x$CLASSE_DI_ETA)
-id1 <- startsWith(x$age, "0")
-id2 <- startsWith(x$age, "1")
-x$age[id1] <- "0-14"
-x$age[id2] <- "15-64"
-x$age[!id1 & !id2] <- "65+"
+x$age <- "65+"
+x$age[x$CL_ETA <= 13] <- "15-64"
+x$age[x$CL_ETA <= 3] <- "0-14"
 
 # grou by region, week and age. Trasform to daily numbers
-x1 <- x %>% group_by(NOME_REGIONE, SETTIMANA, age) %>%
+x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
   summarise(
-    "MASCHI_2015" = sum(MASCHI_2015)/7,
-    "MASCHI_2016" = sum(MASCHI_2016)/7,
-    "MASCHI_2017" = sum(MASCHI_2017)/7,
-    "MASCHI_2018" = sum(MASCHI_2018)/7,
-    "MASCHI_2019" = sum(MASCHI_2019)/7,
-    "MASCHI_2020" = sum(MASCHI_2020)/7,
+    "MASCHI_2015" = sum(M_15, na.rm = TRUE),
+    "MASCHI_2016" = sum(M_16, na.rm = TRUE),
+    "MASCHI_2017" = sum(M_17, na.rm = TRUE),
+    "MASCHI_2018" = sum(M_18, na.rm = TRUE),
+    "MASCHI_2019" = sum(M_19, na.rm = TRUE),
+    "MASCHI_2020" = sum(M_20, na.rm = TRUE),
     
-    "FEMMINE_2015" = sum(FEMMINE_2015)/7,
-    "FEMMINE_2016" = sum(FEMMINE_2016)/7,
-    "FEMMINE_2017" = sum(FEMMINE_2017)/7,
-    "FEMMINE_2018" = sum(FEMMINE_2018)/7,
-    "FEMMINE_2019" = sum(FEMMINE_2019)/7,
-    "FEMMINE_2020" = sum(FEMMINE_2020)/7,
+    "FEMMINE_2015" = sum(F_15, na.rm = TRUE),
+    "FEMMINE_2016" = sum(F_16, na.rm = TRUE),
+    "FEMMINE_2017" = sum(F_17, na.rm = TRUE),
+    "FEMMINE_2018" = sum(F_18, na.rm = TRUE),
+    "FEMMINE_2019" = sum(F_19, na.rm = TRUE),
+    "FEMMINE_2020" = sum(F_20, na.rm = TRUE),
     
-    "TOTALE_2015" = sum(TOTALE_2015)/7,
-    "TOTALE_2016" = sum(TOTALE_2016)/7,
-    "TOTALE_2017" = sum(TOTALE_2017)/7,
-    "TOTALE_2018" = sum(TOTALE_2018)/7,
-    "TOTALE_2019" = sum(TOTALE_2019)/7,
-    "TOTALE_2020" = sum(TOTALE_2020)/7
+    "TOTALE_2015" = sum(T_15, na.rm = TRUE),
+    "TOTALE_2016" = sum(T_16, na.rm = TRUE),
+    "TOTALE_2017" = sum(T_17, na.rm = TRUE),
+    "TOTALE_2018" = sum(T_18, na.rm = TRUE),
+    "TOTALE_2019" = sum(T_19, na.rm = TRUE),
+    "TOTALE_2020" = sum(T_20, na.rm = TRUE)
   ) %>%
   ungroup()
 
 # clean state and date
 x1$administrative_area_level_2 <- as.character(x1$NOME_REGIONE)
-x1$date <- as.Date(sapply(x1$SETTIMANA, function(d){
-  str_split(as.character(d), pattern = '-')[[1]][2]
-}), format = "%d/%m")
+x1$date <- as.Date(sapply(x1$GE, function(d){
+  paste0('0',d)
+}), format = "%m%d")
 
 
 ######### merge with COVID data #########
@@ -84,17 +81,12 @@ x2 <- x1 %>%
                              TOTALE_2018, 
                              TOTALE_2019)/5)
 
-
-x2$week <- as.integer((x2$date - as.Date(pop_date_till))/7)
-it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till))/7)
-
 ## correct names of regions to be consistent between the data sets
 x2$administrative_area_level_2[which(x2$administrative_area_level_2=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
 x2$administrative_area_level_2[which(x2$administrative_area_level_2=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
 
 x3 <- x2
-x3$date <- NULL
-it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("administrative_area_level_2","week")))
+it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("administrative_area_level_2","date")))
 
 # fill pop_deaths in the period 5 April - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
@@ -106,8 +98,8 @@ it2 <- it2 %>%
 
 # weekly deaths/(pop_death_2020-pop_death)
 it3 <- it2 %>%
-  group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3, week) %>% 
-  summarise(date = max(date),
+  group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3, date) %>% 
+  summarise(
             excess_death = sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             excess_death_frac = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             death_2020_ratio = sum(pop_deaths_2020,na.rm=TRUE)/sum(pop_deaths,na.rm=TRUE),

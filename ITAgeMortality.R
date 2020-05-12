@@ -29,59 +29,59 @@ library(ggpubr)
 library(gridExtra)
 library(ggthemes)
 
-pop_date_till<-"2020-04-04"
-x <- read.csv("comuni_settimana.csv") ## csv obtained from https://www.istat.it/it/archivio/240401
+## read in population deaths data
+x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.') ## csv obtained from https://www.istat.it/it/archivio/240401
 
 # age
-x$age <- as.character(x$CLASSE_DI_ETA)
-id1 <- startsWith(x$age, "0")
-id2 <- startsWith(x$age, "1")
-x$age[id1] <- "0-14"
-x$age[id2] <- "15-64"
-x$age[!id1 & !id2] <- "65+"
+x$age <- "65+"
+x$age[x$CL_ETA <= 13] <- "15-64"
+x$age[x$CL_ETA <= 3] <- "0-14"
 
-# grou by region, week and age. Trasform to daily numbers
-x1 <- x %>% group_by(NOME_REGIONE, SETTIMANA, age) %>%
+# grou by region, day and age. Trasform to daily numbers
+x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
   summarise(
-    "MASCHI_2015" = sum(MASCHI_2015),
-    "MASCHI_2016" = sum(MASCHI_2016),
-    "MASCHI_2017" = sum(MASCHI_2017),
-    "MASCHI_2018" = sum(MASCHI_2018),
-    "MASCHI_2019" = sum(MASCHI_2019),
-    "MASCHI_2020" = sum(MASCHI_2020),
+    "MASCHI_2015" = sum(M_15, na.rm = TRUE),
+    "MASCHI_2016" = sum(M_16, na.rm = TRUE),
+    "MASCHI_2017" = sum(M_17, na.rm = TRUE),
+    "MASCHI_2018" = sum(M_18, na.rm = TRUE),
+    "MASCHI_2019" = sum(M_19, na.rm = TRUE),
+    "MASCHI_2020" = sum(M_20, na.rm = TRUE),
     
-    "FEMMINE_2015" = sum(FEMMINE_2015),
-    "FEMMINE_2016" = sum(FEMMINE_2016),
-    "FEMMINE_2017" = sum(FEMMINE_2017),
-    "FEMMINE_2018" = sum(FEMMINE_2018),
-    "FEMMINE_2019" = sum(FEMMINE_2019),
-    "FEMMINE_2020" = sum(FEMMINE_2020),
+    "FEMMINE_2015" = sum(F_15, na.rm = TRUE),
+    "FEMMINE_2016" = sum(F_16, na.rm = TRUE),
+    "FEMMINE_2017" = sum(F_17, na.rm = TRUE),
+    "FEMMINE_2018" = sum(F_18, na.rm = TRUE),
+    "FEMMINE_2019" = sum(F_19, na.rm = TRUE),
+    "FEMMINE_2020" = sum(F_20, na.rm = TRUE),
     
-    "TOTALE_2015" = sum(TOTALE_2015),
-    "TOTALE_2016" = sum(TOTALE_2016),
-    "TOTALE_2017" = sum(TOTALE_2017),
-    "TOTALE_2018" = sum(TOTALE_2018),
-    "TOTALE_2019" = sum(TOTALE_2019),
-    "TOTALE_2020" = sum(TOTALE_2020)
+    "TOTALE_2015" = sum(T_15, na.rm = TRUE),
+    "TOTALE_2016" = sum(T_16, na.rm = TRUE),
+    "TOTALE_2017" = sum(T_17, na.rm = TRUE),
+    "TOTALE_2018" = sum(T_18, na.rm = TRUE),
+    "TOTALE_2019" = sum(T_19, na.rm = TRUE),
+    "TOTALE_2020" = sum(T_20, na.rm = TRUE)
   ) %>%
   ungroup()
 
 # clean state and date
 x1$administrative_area_level_2 <- as.character(x1$NOME_REGIONE)
-x1$date <- as.Date(sapply(x1$SETTIMANA, function(d){
-  str_split(as.character(d), pattern = '-')[[1]][2]
-}), format = "%d/%m")
+x1$date <- as.Date(sapply(x1$GE, function(d){
+  paste0('0',d)
+}), format = "%m%d")
 
-x2 <- x1 %>% 
-  group_by(administrative_area_level_2, date)
-x1<-x2
 
-x1$week <- as.integer((x1$date - as.Date(pop_date_till)))
 ## correct names of regions to be consistent between the data sets
 x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
 x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
 x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Trentino-Alto Adige/Südtirol")]<-"P. A. Bolzano/P. A. Trento"
 
+# fill
+x1 <- x1 %>% 
+  dplyr::na_if(0) %>% 
+  dplyr::group_by(administrative_area_level_2, age) %>%
+  dplyr::arrange(date) %>%
+  tidyr::fill(-c(administrative_area_level_2, age))
+   
 #it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till)))
 
 #x3 <- x1
@@ -119,7 +119,7 @@ f <- function(x, g){
           geom_line(aes(y = TOTALE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "TOTAL")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per week") +
+          xlab("") + ylab("Number of deaths per day") +
           labs(color = "Age (years)")
   
  gMen<-ggplot(data = x, aes(x = date)) +
@@ -131,7 +131,7 @@ f <- function(x, g){
           geom_line(aes(y = MASCHI_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "MEN")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per week") +
+          xlab("") + ylab("Number of deaths per day") +
           labs(color = "Age (years)")
   
  gWomen<-ggplot(data = x, aes(x = date)) +
@@ -143,7 +143,7 @@ f <- function(x, g){
           geom_line(aes(y = FEMMINE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "WOMEN")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per week") +
+          xlab("") + ylab("Number of deaths per day") +
           labs(color = "Age (years)")
 
     g_legend<-function(a.gplot){
