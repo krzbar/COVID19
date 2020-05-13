@@ -29,17 +29,16 @@ require(hrbrthemes)
 require(lubridate)
 require(COVID19) 
 
-
-data_study_date_start<-"2020-02-24"
-data_study_date_end<-"2020-04-20"
-
-
+b_plots<-TRUE
 data_study_date_start<-"2020-02-24" ## date from which we start downloading the data via COVID
 data_study_date_end<-"2020-05-10" ## date until which we download the data via COVID
 
-it_object_RData_file_toload_prefix<-NA ## set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
-it_object_RData_file_tosave_prefix<-"it_object_2020422" ## prefix of files to save data prepared for plotting.
-pop_2020_end_date<-"2020-04-15" ## when do the deceased data in the file "comuni_settimana.csv" end
+mExtraRegressions<-as.matrix(rbind(c(NA,'2020-04-20')))
+#mExtraRegressions<-NULL
+
+it_object_RData_file_toload_prefix<-NA  ##"it_object_20200510" set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
+it_object_RData_file_tosave_prefix<-"it_object_20200510" ## prefix of files to save data prepared for plotting.
+pop_2020_end_date<-"2020-04-15" ## when do the deceased data from ISTAT end
 
 if (!is.na(data_study_date_end)){
     pop_date_till<-as.Date(data_study_date_end)
@@ -101,5 +100,7 @@ for (setup in lsetups){
     source("create_plots.R")  
 }
 
-source("do_plots.R")
-source("ITAgeMortality.R")
+if (b_plots){
+    source("do_plots.R")
+    source("ITAgeMortality.R")
+}

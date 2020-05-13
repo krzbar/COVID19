@@ -30,15 +30,25 @@ library(gridExtra)
 library(ggthemes)
 
 ## read in population deaths data
-x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.') ## csv obtained from https://www.istat.it/it/archivio/240401
+x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.',encoding="latin1") ## csv obtained from https://www.istat.it/it/archivio/240401
 
 # age
 x$age <- "65+"
 x$age[x$CL_ETA <= 13] <- "15-64"
 x$age[x$CL_ETA <= 3] <- "0-14"
 
-# grou by region, day and age. Trasform to daily numbers
-x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
+## KB
+x$date <- as.Date(sapply(x$GE, function(d){
+  paste0('0',d)
+}), format = "%m%d")
+x$week <- as.integer((x$date - as.Date(pop_date_till))/7)
+## =============================   
+
+
+# group by region, day and age. Trasform to daily numbers
+# KB group by region, week and age. Trasform to weekly sum
+#x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
+x1 <- x %>% group_by(NOME_REGIONE, week, age) %>%
   summarise(
     "MASCHI_2015" = sum(M_15, na.rm = TRUE),
     "MASCHI_2016" = sum(M_16, na.rm = TRUE),
@@ -65,9 +75,9 @@ x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
 
 # clean state and date
 x1$administrative_area_level_2 <- as.character(x1$NOME_REGIONE)
-x1$date <- as.Date(sapply(x1$GE, function(d){
-  paste0('0',d)
-}), format = "%m%d")
+#x1$date <- as.Date(sapply(x1$GE, function(d){
+#  paste0('0',d)
+#}), format = "%m%d")
 
 
 ## correct names of regions to be consistent between the data sets
@@ -79,10 +89,10 @@ x1$administrative_area_level_2[which(x1$administrative_area_level_2=="Trentino-A
 x1 <- x1 %>% 
   dplyr::na_if(0) %>% 
   dplyr::group_by(administrative_area_level_2, age) %>%
-  dplyr::arrange(date) %>%
+#  dplyr::arrange(date) %>%
+  dplyr::arrange(week) %>% ## KB
   tidyr::fill(-c(administrative_area_level_2, age))
-   
-#it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till)))
+
 
 #x3 <- x1
 #x3$date <- NULL
@@ -110,7 +120,8 @@ f <- function(x, g){
  # if(!dir.exists(d))
 #    dir.create(d)
   
-  gTot<-ggplot(data = x, aes(x = date)) +
+  x$week<-x$week+abs(min(x$week))+1
+  gTot<-ggplot(data = x, aes(x = week)) +
           geom_line(aes(y = TOTALE_2015, group = age, color = age), linetype = "longdash") +
           geom_line(aes(y = TOTALE_2016, group = age, color = age), linetype = "dotdash") +
           geom_line(aes(y = TOTALE_2017, group = age, color = age), linetype = "dotted") +
@@ -119,10 +130,10 @@ f <- function(x, g){
           geom_line(aes(y = TOTALE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "TOTAL")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per day") +
+          xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
   
- gMen<-ggplot(data = x, aes(x = date)) +
+ gMen<-ggplot(data = x, aes(x = week)) +
           geom_line(aes(y = MASCHI_2015, group = age, color = age), linetype = "longdash") +
           geom_line(aes(y = MASCHI_2016, group = age, color = age), linetype = "dotdash") +
           geom_line(aes(y = MASCHI_2017, group = age, color = age), linetype = "dotted") +
@@ -131,10 +142,10 @@ f <- function(x, g){
           geom_line(aes(y = MASCHI_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "MEN")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per day") +
+          xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
   
- gWomen<-ggplot(data = x, aes(x = date)) +
+ gWomen<-ggplot(data = x, aes(x = week)) +
           geom_line(aes(y = FEMMINE_2015, group = age, color = age), linetype = "longdash") +
           geom_line(aes(y = FEMMINE_2016, group = age, color = age), linetype = "dotdash") +
           geom_line(aes(y = FEMMINE_2017, group = age, color = age), linetype = "dotted") +
@@ -143,7 +154,7 @@ f <- function(x, g){
           geom_line(aes(y = FEMMINE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "WOMEN")) +
           theme_ipsum(base_family="sans") +
-          xlab("") + ylab("Number of deaths per day") +
+          xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
 
     g_legend<-function(a.gplot){
@@ -172,7 +183,8 @@ g <- x1 %>% group_by(administrative_area_level_2) %>%
 
 
 it_all <- x1 %>% 
-          group_by(date,age) %>% 
+#          group_by(date,age) %>% 
+          group_by(week,age) %>%  ##KB
           summarise(                    
             FEMMINE_2015=sum(FEMMINE_2015),
             FEMMINE_2016=sum(FEMMINE_2016),

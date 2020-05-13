@@ -23,12 +23,17 @@
 ## bugs to Krzysztof Bartoszek at krzbar@protonmail.ch .
 
 ## read in population deaths data
-x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.') ## csv obtained from https://www.istat.it/it/archivio/240401
+x <- read.csv("comuni_giornaliero.csv", na.strings = 'n.d.',encoding="latin1") ## csv obtained from https://www.istat.it/it/archivio/240401
 
 # age
 x$age <- "65+"
 x$age[x$CL_ETA <= 13] <- "15-64"
 x$age[x$CL_ETA <= 3] <- "0-14"
+
+#x$date <- as.Date(sapply(x$GE, function(d){
+#  paste0('0',d)
+#}), format = "%m%d")
+#x$week<-strftime(x$date, format = "%V")
 
 # grou by region, week and age. Trasform to daily numbers
 x1 <- x %>% group_by(NOME_REGIONE, GE, age) %>%
@@ -65,7 +70,7 @@ x1$date <- as.Date(sapply(x1$GE, function(d){
 
 ######### merge with COVID data #########
 require(COVID19)
-it_tmp <- covid19("ITA", 2, vintage = TRUE, start = '2020-02-24', end = '2020-04-20') %>%
+it_tmp <- covid19("ITA", 2, vintage = TRUE, start = data_study_date_start, end = data_study_date_end) %>%
   dplyr::group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3) %>%
   dplyr::mutate(confirmed_new = c(confirmed[1], pmax(0,diff(confirmed))),
                 tests_new     = c(tests[1],     pmax(0,diff(tests))),
@@ -81,12 +86,22 @@ x2 <- x1 %>%
                              TOTALE_2018, 
                              TOTALE_2019)/5)
 
+## KB
+x2$week <- as.integer((x2$date - as.Date(pop_date_till))/7)
+it_tmp$week <- as.integer((it_tmp$date - as.Date(pop_date_till))/7)
+## =============================
+
 ## correct names of regions to be consistent between the data sets
 x2$administrative_area_level_2[which(x2$administrative_area_level_2=="Friuli-Venezia Giulia")]<-"Friuli Venezia Giulia"
 x2$administrative_area_level_2[which(x2$administrative_area_level_2=="Valle d'Aosta/Vallée d'Aoste")]<-"Valle d'Aosta"
 
 x3 <- x2
+## KB
+##x3$date <- NULL
+## it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("administrative_area_level_2","week")))
 it2 <- as_tibble(merge(x = it_tmp, y = x3, all.x = TRUE, by = c("administrative_area_level_2","date")))
+## ===========================================================
+it2$week<-it2$week.x
 
 # fill pop_deaths in the period 5 April - today (data not available from ISTAT)
 # it2 <- it2 %>% fill(pop_deaths, pop_deaths_2020)
@@ -95,11 +110,13 @@ it2 <- it2 %>%
   arrange(id, date) %>%
   fill(pop_deaths)
 
-
 # weekly deaths/(pop_death_2020-pop_death)
 it3 <- it2 %>%
-  group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3, date) %>% 
-  summarise(
+#  group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3, date) %>% 
+   group_by(administrative_area_level_1, administrative_area_level_2, administrative_area_level_3, week) %>%  
+## KB
+##  summarise(
+  summarise(date=max(date),
             excess_death = sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             excess_death_frac = sum(deaths_new,na.rm=TRUE)/sum(pop_deaths_2020-pop_deaths,na.rm=TRUE),
             death_2020_ratio = sum(pop_deaths_2020,na.rm=TRUE)/sum(pop_deaths,na.rm=TRUE),

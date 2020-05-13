@@ -22,7 +22,7 @@
 ## that may befall you or others as a result of its use. Please send comments and report 
 ## bugs to Krzysztof Bartoszek at krzbar@protonmail.ch .
 
-f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest){
+f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest,mExtraRegressions){
   res<-ggplot(data = data) 
     vMSE<-c()
     if (! b_donumtest){
@@ -58,12 +58,12 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 		    if (!is.na(dfdata_cutoff[i_reg,"date_cutoff"]))if(dfdata_cutoff[i_reg,"date_cutoff"]!=""){
 			data_for_lm<-data
 			if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])) if(dfdata_cutoff[i_reg,"remove_datefrom"]!="") {
-			    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
-			    ##data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=dfdata_cutoff[i_reg,"remove_datefrom"]),which(data_for_lm$date<=dfdata_cutoff[i_reg,"remove_dateto"]))]<-NA
+			    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
+			    ##data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
 			}
-			data_for_lm<-data_for_lm[which(data_for_lm$date>=dfdata_cutoff[i_reg,"date_cutoff"]),]
+			data_for_lm<-data_for_lm[which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),]
 			if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
-			    data_for_lm<-data_for_lm[which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]),]
+			    data_for_lm<-data_for_lm[which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"end_date"])),]
 			}
 			data_for_lm$diff_confirmed_new[c(which(is.infinite(data_for_lm$diff_confirmed_new),is.nan(data_for_lm$diff_confirmed_new)))]<-NA
 			data_for_lm$diff_confirmed_cumul[c(which(is.infinite(data_for_lm$diff_confirmed_cumul),is.nan(data_for_lm$diff_confirmed_cumul)))]<-NA
@@ -78,9 +78,9 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			data$ci_lwr_cumul<-NA
 			data$ci_upr_cumul<-NA			
 			data$pred_diff_cumul<-NA			
-			v_dates_for_lm_indices<-which(data$date>=dfdata_cutoff[i_reg,"date_cutoff"])
+			v_dates_for_lm_indices<-which(data$date>=as.Date(dfdata_cutoff[i_reg,"date_cutoff"]))
 			if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
-			    v_dates_for_lm_indices<-intersect(v_dates_for_lm_indices,which(data_for_lm$date<=dfdata_cutoff[i_reg,"end_date"]))
+			    v_dates_for_lm_indices<-intersect(v_dates_for_lm_indices,which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"end_date"])))
 			}
 			data$pred_diff_new[v_dates_for_lm_indices]<-ci_new[,1]
 			data$ci_lwr_new[v_dates_for_lm_indices]<-ci_new[,2]
@@ -107,12 +107,59 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			summ_lm_new<-summary(mod_new)
 			summ_lm_cumul<-summary(mod_cumul)
 			ci_slope_new<-c(summ_lm_new$coefficients[2,1]-qnorm(0.975)*summ_lm_new$coefficients[2,2],summ_lm_new$coefficients[2,1]+qnorm(0.975)*summ_lm_new$coefficients[2,2])
+			print(paste0("Regression between dates: ",min(data_for_lm$date)," and ",max(data_for_lm$date)))
 			print(paste0("Estimated slope and its 95% confidence interval (new): ",format(round(summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_new[1], 3), nsmall = 3),",",format(round(ci_slope_new[2], 3), nsmall = 3),")"))
 			print(paste0("Half-life in days and its 95% confidence interval (new): ",format(round((-1)*log(2)/summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round((-1)*log(2)/ci_slope_new[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_new[2], 3), nsmall = 3),")"))
 
 			ci_slope_cumul<-c(summ_lm_cumul$coefficients[2,1]-qnorm(0.975)*summ_lm_cumul$coefficients[2,2],summ_lm_cumul$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul$coefficients[2,2])
 			print(paste0("Estimated slope and its 95% confidence interval (cumulative): ",format(round(summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_cumul[1], 3), nsmall = 3),",",format(round(ci_slope_cumul[2], 3), nsmall = 3),")"))
-			print(paste0("Doubling time in days and its 95% confidence interval (cumulative): ",format(round(log(2)/summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(log(2)/ci_slope_cumul[2], 3), nsmall = 3),",",format(round(log(2)/ci_slope_cumul[1], 3), nsmall = 3),")"))
+			print(paste0("Half-life in days and its 95% confidence interval (cumulative): ",format((-1)*round(log(2)/summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format((-1)*round(log(2)/ci_slope_cumul[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_cumul[2], 3), nsmall = 3),")"))
+
+			if ((!is.null(mExtraRegressions))&&(is.matrix(mExtraRegressions))&&(nrow(mExtraRegressions)>0)){
+			    for (index_date_reg_pair in 1:nrow(mExtraRegressions)){
+				reg_start_date<-mExtraRegressions[index_date_reg_pair,1]
+				reg_end_date<-mExtraRegressions[index_date_reg_pair,2]
+
+				data_for_lm<-data
+				if (is.na(reg_start_date)){
+				    reg_start_date<-dfdata_cutoff[i_reg,"date_cutoff"]
+				}
+				if ((!is.na(reg_start_date))&&(reg_start_date!="")){
+				    data_for_lm<-data_for_lm[which(data_for_lm$date>=as.Date(reg_start_date)),]
+				}else{
+				    reg_start_date<-min(data_for_lm$date)
+				}
+				if (is.na(reg_end_date)){
+					if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
+					    reg_end_date<-dfdata_cutoff[i_reg,"end_date"]
+					}
+				}
+				if ((!is.na(reg_end_date))&&(reg_end_date!="")){
+				    data_for_lm<-data_for_lm[which(data_for_lm$date<=as.Date(reg_end_date)),]
+				}else{
+				    reg_end_date<-max(data_for_lm$date)
+				}
+
+				data_for_lm$diff_confirmed_new[c(which(is.infinite(data_for_lm$diff_confirmed_new),is.nan(data_for_lm$diff_confirmed_new)))]<-NA
+				data_for_lm$diff_confirmed_cumul[c(which(is.infinite(data_for_lm$diff_confirmed_cumul),is.nan(data_for_lm$diff_confirmed_cumul)))]<-NA
+				data_for_lm$t <- 1:nrow(data_for_lm)
+				mod_new <- lm(diff_confirmed_new ~ t, data = data_for_lm,na.action="na.exclude")
+				mod_cumul <- lm(diff_confirmed_cumul ~ t, data = data_for_lm,na.action="na.exclude")
+
+				summ_lm_new<-summary(mod_new)
+				summ_lm_cumul<-summary(mod_cumul)
+				ci_slope_new<-c(summ_lm_new$coefficients[2,1]-qnorm(0.975)*summ_lm_new$coefficients[2,2],summ_lm_new$coefficients[2,1]+qnorm(0.975)*summ_lm_new$coefficients[2,2])
+			
+				print("---------------------------------------")
+				print(paste0("Regression between dates: ",min(data_for_lm$date)," and ",max(data_for_lm$date)))
+				print(paste0("Estimated slope and its 95% confidence interval (new): ",format(round(summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_new[1], 3), nsmall = 3),",",format(round(ci_slope_new[2], 3), nsmall = 3),")"))
+				print(paste0("Half-life in days and its 95% confidence interval (new): ",format(round((-1)*log(2)/summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round((-1)*log(2)/ci_slope_new[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_new[2], 3), nsmall = 3),")"))
+
+				ci_slope_cumul<-c(summ_lm_cumul$coefficients[2,1]-qnorm(0.975)*summ_lm_cumul$coefficients[2,2],summ_lm_cumul$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul$coefficients[2,2])
+				print(paste0("Estimated slope and its 95% confidence interval (cumulative): ",format(round(summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_cumul[1], 3), nsmall = 3),",",format(round(ci_slope_cumul[2], 3), nsmall = 3),")"))
+				print(paste0("Half-life in days and its 95% confidence interval (cumulative): ",format(round((-1)*log(2)/summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format((-1)*round(log(2)/ci_slope_cumul[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_cumul[2], 3), nsmall = 3),")"))
+			    }			
+			}
 		    }else{
 			print(c(NA,NA))
 		    }
@@ -138,7 +185,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
     list(grplot=res,MSE=vMSE, title = title)
 }
 
-g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest)
+g <- group_map(it, f1, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_numtest,mExtraRegressions)
 
 g
  dirname <- paste0(dir_prefix,c_ending)
