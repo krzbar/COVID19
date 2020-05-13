@@ -36,7 +36,7 @@ data_study_date_end<-"2020-05-10" ## date until which we download the data via C
 mExtraRegressions<-as.matrix(rbind(c(NA,'2020-04-20')))
 #mExtraRegressions<-NULL
 
-it_object_RData_file_toload_prefix<-NA  ##"it_object_20200510" set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
+it_object_RData_file_toload_prefix<-"it_object_20200510" set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
 it_object_RData_file_tosave_prefix<-"it_object_20200510" ## prefix of files to save data prepared for plotting.
 pop_2020_end_date<-"2020-04-15" ## when do the deceased data from ISTAT end
 
