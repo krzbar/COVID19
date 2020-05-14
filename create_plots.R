@@ -71,7 +71,7 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			mod_new <- lm(diff_confirmed_new ~ t, data = data_for_lm,na.action="na.exclude")
 			ci_new <- predict(mod_new, newdata = data_for_lm, interval = 'prediction')
 			mod_cumul <- lm(diff_confirmed_cumul ~ t, data = data_for_lm,na.action="na.exclude")
-			ci_cumul <- predict(mod_new, newdata = data_for_lm, interval = 'prediction')
+			ci_cumul <- predict(mod_cumul, newdata = data_for_lm, interval = 'prediction')
 			data$ci_lwr_new<-NA
 			data$ci_upr_new<-NA			
 			data$pred_diff_new<-NA			
