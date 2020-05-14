@@ -33,7 +33,7 @@ b_plots<-TRUE
 data_study_date_start<-"2020-02-24" ## date from which we start downloading the data via COVID
 data_study_date_end<-"2020-05-10" ## date until which we download the data via COVID
 
-mExtraRegressions<-as.matrix(rbind(c(NA,'2020-04-20')))
+mExtraRegressions<-as.matrix(rbind(c(NA,'2020-04-20'))) ## Extra regressions on the log(confirmed/tested)~time, first column start date (if NA, then equals dates in the NumTest_dates.csv file) second column end date (if NA then data_study_date_end)
 #mExtraRegressions<-NULL ## No extra regression on the log(confirmed/tested)~time
 
 it_object_RData_file_toload_prefix<-"it_object_20200510" ## set to NA if you want to rerun the analysis completely including the downloading of the data via COVID, otherwise it is the prefix of the .RData file where the data prepared for plotting by the scripts is stored
