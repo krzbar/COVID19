@@ -140,6 +140,18 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 				    reg_end_date<-max(data_for_lm$date)
 				}
 
+				if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])) if(dfdata_cutoff[i_reg,"remove_datefrom"]!="") {
+				    date_remove_datafrom<-dfdata_cutoff[i_reg,"remove_datefrom"]
+				    if (as.Date(date_remove_datafrom) < as.Date(reg_start_date)){
+					date_remove_datafrom<-reg_start_date
+				    }
+				    date_remove_datato<-dfdata_cutoff[i_reg,"remove_dateto"]
+				    if (as.Date(date_remove_datato) < as.Date(reg_end_date)){
+					date_remove_datato<-reg_end_date
+				    }
+				    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=as.Date(date_remove_datafrom)),which(data_for_lm$date<=as.Date(date_remove_datato)))]<-NA
+				}
+
 				data_for_lm$diff_confirmed_new[c(which(is.infinite(data_for_lm$diff_confirmed_new),is.nan(data_for_lm$diff_confirmed_new)))]<-NA
 				data_for_lm$diff_confirmed_cumul[c(which(is.infinite(data_for_lm$diff_confirmed_cumul),is.nan(data_for_lm$diff_confirmed_cumul)))]<-NA
 				data_for_lm$t <- 1:nrow(data_for_lm)

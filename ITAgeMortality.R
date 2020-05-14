@@ -69,10 +69,11 @@ x1 <- x %>% group_by(NOME_REGIONE, week, age) %>%
     "TOTALE_2017" = sum(T_17, na.rm = TRUE),
     "TOTALE_2018" = sum(T_18, na.rm = TRUE),
     "TOTALE_2019" = sum(T_19, na.rm = TRUE),
-    "TOTALE_2020" = sum(T_20, na.rm = TRUE)
+    "TOTALE_2020" = sum(T_20, na.rm = TRUE),
+    
+    "date"=max(date)
   ) %>%
   ungroup()
-
 # clean state and date
 x1$administrative_area_level_2 <- as.character(x1$NOME_REGIONE)
 #x1$date <- as.Date(sapply(x1$GE, function(d){
@@ -105,7 +106,7 @@ x1 <- x1 %>%
 
 
 # function to do and save plots
-f <- function(x, g){
+f <- function(x, g, pop_2020_end_date){
 
     name_g<-make.names(g)
     name_g<-gsub("\\.","_",name_g)  
@@ -127,35 +128,36 @@ f <- function(x, g){
           geom_line(aes(y = TOTALE_2017, group = age, color = age), linetype = "dotted") +
           geom_line(aes(y = TOTALE_2018, group = age, color = age), linetype = "dashed") +
           geom_line(aes(y = TOTALE_2019, group = age, color = age), linetype = "twodash") +
-          geom_line(aes(y = TOTALE_2020, group = age, color = age),size=1.5) +
+          ## geom_line(aes(y = TOTALE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "TOTAL")) +
           theme_ipsum(base_family="sans") +
           xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
-  
+ gTot<-  gTot+geom_line(data= x %>% filter(date <= as.Date(pop_2020_end_date)),aes(x=week, y = TOTALE_2020, group = age, color = age),size=1.5)
  gMen<-ggplot(data = x, aes(x = week)) +
           geom_line(aes(y = MASCHI_2015, group = age, color = age), linetype = "longdash") +
           geom_line(aes(y = MASCHI_2016, group = age, color = age), linetype = "dotdash") +
           geom_line(aes(y = MASCHI_2017, group = age, color = age), linetype = "dotted") +
           geom_line(aes(y = MASCHI_2018, group = age, color = age), linetype = "dashed") +
           geom_line(aes(y = MASCHI_2019, group = age, color = age), linetype = "twodash") +
-          geom_line(aes(y = MASCHI_2020, group = age, color = age),size=1.5) +
+          ##geom_line(aes(y = MASCHI_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "MEN")) +
           theme_ipsum(base_family="sans") +
           xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
-  
+ gMen<-  gMen+geom_line(data= x %>% filter(date <= as.Date(pop_2020_end_date)),aes(x=week, y = MASCHI_2020, group = age, color = age),size=1.5)  
  gWomen<-ggplot(data = x, aes(x = week)) +
           geom_line(aes(y = FEMMINE_2015, group = age, color = age), linetype = "longdash") +
           geom_line(aes(y = FEMMINE_2016, group = age, color = age), linetype = "dotdash") +
           geom_line(aes(y = FEMMINE_2017, group = age, color = age), linetype = "dotted") +
           geom_line(aes(y = FEMMINE_2018, group = age, color = age), linetype = "dashed") +
           geom_line(aes(y = FEMMINE_2019, group = age, color = age), linetype = "twodash") +
-          geom_line(aes(y = FEMMINE_2020, group = age, color = age),size=1.5) +
+          ##geom_line(aes(y = FEMMINE_2020, group = age, color = age),size=1.5) +
           ggtitle(paste(g, "WOMEN")) +
           theme_ipsum(base_family="sans") +
           xlab("") + ylab("Number of deaths per week") +
           labs(color = "Age (years)")
+ gWomen<-  gWomen+geom_line(data= x %>% filter(date <= as.Date(pop_2020_end_date)),aes(x=week, y = FEMMINE_2020, group = age, color = age),size=1.5)  
 
     g_legend<-function(a.gplot){
       tmp <- ggplot_gtable(ggplot_build(a.gplot))
@@ -179,33 +181,34 @@ f <- function(x, g){
   
 # do and save plots
 g <- x1 %>% group_by(administrative_area_level_2) %>%
-  group_map(f)
+  group_map(f,pop_2020_end_date)
 
 
 it_all <- x1 %>% 
 #          group_by(date,age) %>% 
           group_by(week,age) %>%  ##KB
           summarise(                    
-            FEMMINE_2015=sum(FEMMINE_2015),
-            FEMMINE_2016=sum(FEMMINE_2016),
-            FEMMINE_2017=sum(FEMMINE_2017),
-            FEMMINE_2018=sum(FEMMINE_2018),
-            FEMMINE_2019=sum(FEMMINE_2019),
-            FEMMINE_2020=sum(FEMMINE_2020),
-	    MASCHI_2015=sum(MASCHI_2015),
-	    MASCHI_2016=sum(MASCHI_2016),
-	    MASCHI_2017=sum(MASCHI_2017),
-	    MASCHI_2018=sum(MASCHI_2018),
-	    MASCHI_2019=sum(MASCHI_2019),
-	    MASCHI_2020=sum(MASCHI_2020),
-	    TOTALE_2015=sum(TOTALE_2015),
-	    TOTALE_2016=sum(TOTALE_2016),
-	    TOTALE_2017=sum(TOTALE_2017),
-	    TOTALE_2018=sum(TOTALE_2018),
-	    TOTALE_2019=sum(TOTALE_2019),
-	    TOTALE_2020=sum(TOTALE_2020)          
+            FEMMINE_2015=sum(FEMMINE_2015, na.rm = TRUE),
+            FEMMINE_2016=sum(FEMMINE_2016, na.rm = TRUE),
+            FEMMINE_2017=sum(FEMMINE_2017, na.rm = TRUE),
+            FEMMINE_2018=sum(FEMMINE_2018, na.rm = TRUE),
+            FEMMINE_2019=sum(FEMMINE_2019, na.rm = TRUE),
+            FEMMINE_2020=sum(FEMMINE_2020, na.rm = TRUE),
+	    MASCHI_2015=sum(MASCHI_2015, na.rm = TRUE),
+	    MASCHI_2016=sum(MASCHI_2016, na.rm = TRUE),
+	    MASCHI_2017=sum(MASCHI_2017, na.rm = TRUE),
+	    MASCHI_2018=sum(MASCHI_2018, na.rm = TRUE),
+	    MASCHI_2019=sum(MASCHI_2019, na.rm = TRUE),
+	    MASCHI_2020=sum(MASCHI_2020, na.rm = TRUE),
+	    TOTALE_2015=sum(TOTALE_2015, na.rm = TRUE),
+	    TOTALE_2016=sum(TOTALE_2016, na.rm = TRUE),
+	    TOTALE_2017=sum(TOTALE_2017, na.rm = TRUE),
+	    TOTALE_2018=sum(TOTALE_2018, na.rm = TRUE),
+	    TOTALE_2019=sum(TOTALE_2019, na.rm = TRUE),
+	    TOTALE_2020=sum(TOTALE_2020, na.rm = TRUE),
+	    "date"=max(date)
           ) 
 #%>%
 #          right_join(it_all)
 
-f(it_all,"Italy")
+f(it_all,"Italy",pop_2020_end_date)
