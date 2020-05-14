@@ -92,17 +92,17 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			#res<-res+  geom_line(aes(y = ci[,1],)) +   geom_ribbon(aes(ymin = ci[,2], ymax = ci[,3]), alpha = 0.4) 
 			#res<-res+   geom_ribbon(aes(x=date,ymin = data$ci_lwr, ymax = data$ci_upr), alpha = 0.4) 
 			if (is.na(dfdata_cutoff[i_reg,"end_date"]) | dfdata_cutoff[i_reg,"end_date"]==""){
-			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
-			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
+			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
+			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
 			    
-			    #res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_new))
-			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_cumul))
+			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_new))
+			    #res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),aes(x=date,y = pred_diff_cumul))
 			}else{
-			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
-			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
+			    res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_new, ymax = ci_upr_new), alpha = 0.4) 
+			    #res<-res+   geom_ribbon(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])), aes(x=date,ymin = ci_lwr_cumul, ymax = ci_upr_cumul), alpha = 0.4) 
 			    
-			    #res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_new))
-			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_cumul))
+			    res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_new))
+			    #res<-res+ geom_line(data = data %>% filter(date >= as.Date(dfdata_cutoff[i_reg,"date_cutoff"])) %>% filter(date <= as.Date(dfdata_cutoff[i_reg,"end_date"])),aes(x=date,y = pred_diff_cumul))
 			}
 			summ_lm_new<-summary(mod_new)
 			summ_lm_cumul<-summary(mod_cumul)
