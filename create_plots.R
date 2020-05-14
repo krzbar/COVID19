@@ -72,6 +72,21 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			ci_new <- predict(mod_new, newdata = data_for_lm, interval = 'prediction')
 			mod_cumul <- lm(diff_confirmed_cumul ~ t, data = data_for_lm,na.action="na.exclude")
 			ci_cumul <- predict(mod_cumul, newdata = data_for_lm, interval = 'prediction')
+			
+			
+			data_for_lm_raw<-data_for_lm
+			data_for_lm_raw$confirmed_new_gr[c(which(is.infinite(data_for_lm_raw$confirmed_new_gr),is.nan(data_for_lm_raw$confirmed_new_gr)))]<-NA
+			data_for_lm_raw$tests_new_gr[c(which(is.infinite(data_for_lm_raw$tests_new_gr),is.nan(data_for_lm_raw$tests_new_gr)))]<-NA
+			data_for_lm_raw$confirmed[c(which(is.infinite(log(data_for_lm_raw$confirmed)),is.nan(log(data_for_lm_raw$confirmed))))]<-NA
+
+			mod_new_raw <- lm(confirmed_new_gr ~ t, data = data_for_lm_raw,na.action="na.exclude")
+			ci_new_raw <- predict(mod_new_raw, newdata = data_for_lm_raw, interval = 'prediction')
+			mod_test_new_raw <- lm(tests_new_gr ~ t, data = data_for_lm_raw,na.action="na.exclude")
+			ci_test_new_raw <- predict(mod_test_new_raw, newdata = data_for_lm_raw, interval = 'prediction')
+			mod_cumul_raw <- lm(log(confirmed) ~ t, data = data_for_lm_raw,na.action="na.exclude");
+			ci_cumul_raw <- predict(mod_new, newdata = data_for_lm_raw, interval = 'prediction')
+			
+			
 			data$ci_lwr_new<-NA
 			data$ci_upr_new<-NA			
 			data$pred_diff_new<-NA			
@@ -88,6 +103,8 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			data$pred_diff_cumul[v_dates_for_lm_indices]<-ci_cumul[,1]
 			data$ci_lwr_cumul[v_dates_for_lm_indices]<-ci_cumul[,2]
 			data$ci_upr_cumul[v_dates_for_lm_indices]<-ci_cumul[,3]
+
+
 
 			#res<-res+  geom_line(aes(y = ci[,1],)) +   geom_ribbon(aes(ymin = ci[,2], ymax = ci[,3]), alpha = 0.4) 
 			#res<-res+   geom_ribbon(aes(x=date,ymin = data$ci_lwr, ymax = data$ci_upr), alpha = 0.4) 
@@ -106,6 +123,10 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			}
 			summ_lm_new<-summary(mod_new)
 			summ_lm_cumul<-summary(mod_cumul)
+			summ_lm_new_raw<-summary(mod_new_raw)
+			summ_lm_test_new_raw<-summary(mod_test_new_raw)
+			summ_lm_cumul_raw<-summary(mod_cumul_raw)
+	
 			ci_slope_new<-c(summ_lm_new$coefficients[2,1]-qnorm(0.975)*summ_lm_new$coefficients[2,2],summ_lm_new$coefficients[2,1]+qnorm(0.975)*summ_lm_new$coefficients[2,2])
 			print(paste0("Regression between dates: ",min(data_for_lm$date)," and ",max(data_for_lm$date)))
 			print(paste0("Estimated slope and its 95% confidence interval (new): ",format(round(summ_lm_new$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_new[1], 3), nsmall = 3),",",format(round(ci_slope_new[2], 3), nsmall = 3),")"))
@@ -114,6 +135,19 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			ci_slope_cumul<-c(summ_lm_cumul$coefficients[2,1]-qnorm(0.975)*summ_lm_cumul$coefficients[2,2],summ_lm_cumul$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul$coefficients[2,2])
 			print(paste0("Estimated slope and its 95% confidence interval (cumulative): ",format(round(summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_cumul[1], 3), nsmall = 3),",",format(round(ci_slope_cumul[2], 3), nsmall = 3),")"))
 			print(paste0("Half-life in days and its 95% confidence interval (cumulative): ",format((-1)*round(log(2)/summ_lm_cumul$coefficients[2,1], 3), nsmall = 3)," (",format((-1)*round(log(2)/ci_slope_cumul[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_cumul[2], 3), nsmall = 3),")"))
+
+			ci_slope_new_raw<-c(summ_lm_new_raw$coefficients[2,1]-qnorm(0.975)*summ_lm_new_raw$coefficients[2,2],summ_lm_new_raw$coefficients[2,1]+qnorm(0.975)*summ_lm_new_raw$coefficients[2,2])
+			print(paste0("Estimated slope and its 95% confidence interval (new raw): ",format(round(summ_lm_new_raw$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_new_raw[1], 3), nsmall = 3),",",format(round(ci_slope_new_raw[2], 3), nsmall = 3),")"))
+			print(paste0("Half-life in days and its 95% confidence interval (new raw): ",format(round((-1)*log(2)/summ_lm_new_raw$coefficients[2,1], 3), nsmall = 3)," (",format(round((-1)*log(2)/ci_slope_new_raw[1], 3), nsmall = 3),",",format((-1)*round(log(2)/ci_slope_new_raw[2], 3), nsmall = 3),")"))
+			print(paste0('Ratio of slopes for $a_{\\mathrm{f}}/a_{\\mathrm{raw}}=',format(round(summ_lm_new$coefficients[2,1]/summ_lm_new_raw$coefficients[2,1], 3), nsmall = 3),"$, with corresponding half--lives' ratio: $",format(round((-1)*log(2)/summ_lm_new$coefficients[2,1]/((-1)*log(2)/summ_lm_new_raw$coefficients[2,1]), 3), nsmall = 3),"$."))
+	
+			ci_slope_cumul_raw<-c(summ_lm_cumul_raw$coefficients[2,1]-qnorm(0.975)*summ_lm_cumul_raw$coefficients[2,2],summ_lm_cumul_raw$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul_raw$coefficients[2,2])
+			print(paste0("Estimated slope and its 95% confidence interval (cumulative raw): ",format(round(summ_lm_cumul_raw$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_cumul_raw[1], 3), nsmall = 3),",",format(round(ci_slope_cumul_raw[2], 3), nsmall = 3),")"))
+			print(paste0("Doubling time in days and its 95% confidence interval (cumulative raw): ",format((1)*round(log(2)/summ_lm_cumul_raw$coefficients[2,1], 3), nsmall = 3)," (",format((1)*round(log(2)/ci_slope_cumul_raw[2], 3), nsmall = 3),",",format((1)*round(log(2)/ci_slope_cumul_raw[1], 3), nsmall = 3),")"))
+
+			ci_slope_test_new_raw<-c(summ_lm_test_new_raw$coefficients[2,1]-qnorm(0.975)*summ_lm_test_new_raw$coefficients[2,2],summ_lm_cumul_raw$coefficients[2,1]+qnorm(0.975)*summ_lm_cumul_raw$coefficients[2,2])
+			print(paste0("Estimated slope and its 95% confidence interval (tests new raw): ",format(round(summ_lm_test_new_raw$coefficients[2,1], 3), nsmall = 3)," (",format(round(ci_slope_test_new_raw[1], 3), nsmall = 3),",",format(round(ci_slope_test_new_raw[2], 3), nsmall = 3),")"))
+			print(paste0("Doubling time in days and its 95% confidence interval (test new raw): ",format((1)*round(log(2)/summ_lm_test_new_raw$coefficients[2,1], 3), nsmall = 3)," (",format((1)*round(log(2)/ci_slope_test_new_raw[2], 3), nsmall = 3),",",format((1)*round(log(2)/ci_slope_test_new_raw[1], 3), nsmall = 3),")"))
 
 			if ((!is.null(mExtraRegressions))&&(is.matrix(mExtraRegressions))&&(nrow(mExtraRegressions)>0)){
 			    for (index_date_reg_pair in 1:nrow(mExtraRegressions)){
