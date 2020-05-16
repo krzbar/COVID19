@@ -59,7 +59,10 @@ f1 <- function(data, key, b_dodaily, b_donumtest, b_dolog,b_onlycumul,b_do_lm_nu
 			data_for_lm<-data
 			if (!is.na(dfdata_cutoff[i_reg,"remove_datefrom"])) if(dfdata_cutoff[i_reg,"remove_datefrom"]!="") {
 			    data_for_lm$diff_confirmed_new[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
-			    ##data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
+			    data_for_lm$confirmed_new_gr[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
+			    data_for_lm$confirmed[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
+			    data_for_lm$tests_new_gr[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA
+			    data_for_lm$diff_confirmed_cumul[intersect(which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"remove_datefrom"])),which(data_for_lm$date<=as.Date(dfdata_cutoff[i_reg,"remove_dateto"])))]<-NA			
 			}
 			data_for_lm<-data_for_lm[which(data_for_lm$date>=as.Date(dfdata_cutoff[i_reg,"date_cutoff"])),]
 			if (!is.na(dfdata_cutoff[i_reg,"end_date"]))if (dfdata_cutoff[i_reg,"end_date"]!=""){
